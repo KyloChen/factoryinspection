@@ -131,6 +131,9 @@
     /*<![CDATA[*/
     var myChart = echarts.init(document.getElementById('main'));
     var dates = JSON.parse([[${dates}]]);
+    if(dates == null){
+        alert("今日数据未录入，请稍后重试")
+    }
     var topTemps = JSON.parse([[${topTemps}]]);
     var midTemps = JSON.parse([[${midTemps}]]);
     var botTemps = JSON.parse([[${botTemps}]]);

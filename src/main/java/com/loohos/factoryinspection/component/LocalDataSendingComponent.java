@@ -46,7 +46,7 @@ public class LocalDataSendingComponent {
 
     }
 
-    @Scheduled(cron = "10 */5 * * * ?")
+    @Scheduled(cron = "40 */5 * * * ?")
 //    @Scheduled(cron = "10 * * * * ?")
     public void uploadTerminalValue(){
         String localConfig = machineType;

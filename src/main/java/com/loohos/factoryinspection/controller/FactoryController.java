@@ -2,6 +2,7 @@ package com.loohos.factoryinspection.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
+import com.loohos.factoryinspection.model.config.ConfigAlarmLevel;
 import com.loohos.factoryinspection.model.local.Factory;
 import com.loohos.factoryinspection.model.formbean.QueryDateRange;
 import com.loohos.factoryinspection.model.formbean.QueryDateRangeResult;
@@ -9,6 +10,7 @@ import com.loohos.factoryinspection.model.local.LocalSite;
 import com.loohos.factoryinspection.model.local.Terminal;
 import com.loohos.factoryinspection.model.formbean.TerminalGroup;
 import com.loohos.factoryinspection.model.local.TerminalValueSensor;
+import com.loohos.factoryinspection.service.ConfigAlarmLevelService;
 import com.loohos.factoryinspection.service.FactoryService;
 import com.loohos.factoryinspection.service.TerminalService;
 import com.loohos.factoryinspection.service.TerminalValueSensorService;
@@ -45,6 +47,7 @@ public class FactoryController {
     @Resource(name = "factoryServiceImpl") private FactoryService factoryService;
     @Resource(name = "terminalServiceImpl") private TerminalService terminalService;
     @Resource(name = "terminalValueSensorServiceImpl") private TerminalValueSensorService terminalValueSensorService;
+    @Resource(name = "configAlarmLevelServiceImpl") private ConfigAlarmLevelService configAlarmLevelService;
     /**
      *厂房地图
      * */
@@ -84,10 +87,16 @@ public class FactoryController {
             double midTemp = terminalValueSensorService.getLatestMidTempByTerminal(terminal);
             double botTemp = terminalValueSensorService.getLatestBotTempByTerminal(terminal);
             TerminalGroup temp = new TerminalGroup();
+            ConfigAlarmLevel topAlarmLevel = configAlarmLevelService.getLevelByTemp(topTemp);
+            ConfigAlarmLevel midAlarmLevel = configAlarmLevelService.getLevelByTemp(midTemp);
+            ConfigAlarmLevel botAlarmLevel = configAlarmLevelService.getLevelByTemp(botTemp);
             temp.setTerminal(terminal);
             temp.setTopTemp(topTemp);
+            temp.setTopAlarmLevel(topAlarmLevel);
             temp.setMidTemp(midTemp);
+            temp.setMidAlarmLevel(midAlarmLevel);
             temp.setBotTemp(botTemp);
+            temp.setBotAlarmLevel(botAlarmLevel);
             temps.add(temp);
         }
         model.put("factory", factory);

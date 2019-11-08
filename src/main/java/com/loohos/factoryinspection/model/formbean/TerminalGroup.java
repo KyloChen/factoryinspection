@@ -1,5 +1,6 @@
 package com.loohos.factoryinspection.model.formbean;
 
+import com.loohos.factoryinspection.model.config.ConfigAlarmLevel;
 import com.loohos.factoryinspection.model.formbean.BaseFormBean;
 import com.loohos.factoryinspection.model.local.Terminal;
 
@@ -8,6 +9,9 @@ public class TerminalGroup extends BaseFormBean {
     private double topTemp;
     private double midTemp;
     private double botTemp;
+    private ConfigAlarmLevel topAlarmLevel;
+    private ConfigAlarmLevel midAlarmLevel;
+    private ConfigAlarmLevel botAlarmLevel;
 
     public Terminal getTerminal() {
         return terminal;
@@ -39,5 +43,29 @@ public class TerminalGroup extends BaseFormBean {
 
     public void setBotTemp(double botTemp) {
         this.botTemp = botTemp;
+    }
+
+    public ConfigAlarmLevel getTopAlarmLevel() {
+        return topAlarmLevel;
+    }
+
+    public void setTopAlarmLevel(ConfigAlarmLevel topAlarmLevel) {
+        this.topAlarmLevel = topAlarmLevel;
+    }
+
+    public ConfigAlarmLevel getMidAlarmLevel() {
+        return midAlarmLevel;
+    }
+
+    public void setMidAlarmLevel(ConfigAlarmLevel midAlarmLevel) {
+        this.midAlarmLevel = midAlarmLevel;
+    }
+
+    public ConfigAlarmLevel getBotAlarmLevel() {
+        return botAlarmLevel;
+    }
+
+    public void setBotAlarmLevel(ConfigAlarmLevel botAlarmLevel) {
+        this.botAlarmLevel = botAlarmLevel;
     }
 }

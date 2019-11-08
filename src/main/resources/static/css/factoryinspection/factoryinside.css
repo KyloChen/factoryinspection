@@ -74,9 +74,25 @@ body .mainmenu li a span{ display:block; height:30px; line-height:30px;backgroun
 #sensor_position li{
     float: left;
 }
+#backMap{
+    position: absolute;
+    top: 0;
+    left: 320px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: whitesmoke;
+}
+#setAlarmLevel{
+    position: absolute;
+    top: 0;
+    left: 80px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: whitesmoke;
+}
 #addTerminal{
     position: absolute;
-    top: 0px;
+    top: 0;
     left: 160px;
     padding: 4px 10px;
     font-size: 12px;
@@ -84,20 +100,13 @@ body .mainmenu li a span{ display:block; height:30px; line-height:30px;backgroun
 }
 #showAllTerminal{
     position: absolute;
-    top: 0px;
+    top: 0;
     left: 240px;
     padding: 4px 10px;
     font-size: 12px;
     color: whitesmoke;
 }
-#backMap{
-    position: absolute;
-    top: 0px;
-    left: 80px;
-    padding: 4px 10px;
-    font-size: 12px;
-    color: whitesmoke;
-}
+
 #queryToggleBtn{
     display: none;
 }

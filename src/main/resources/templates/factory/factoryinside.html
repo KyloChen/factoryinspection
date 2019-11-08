@@ -34,7 +34,7 @@
 
 
     <script type="text/javascript">
-        var pathname = window.location.pathname;
+    var pathname = window.location.pathname;
         var projectName = pathname.substring(0,pathname.substr(1).indexOf('/') + 1);
         function jumpToOtherInterface(that) {
                 var terminalCode = $(that).attr('data-terminalCode');
@@ -227,7 +227,7 @@
             })
         }
 
-        function resetQueryTerminal() {
+        function refreshQueryTerminal() {
             window.history.go(0);
         }
 
@@ -332,12 +332,52 @@
     </div>
 </div>
 <button id="addTerminal" class="btn btn-success" data-toggle="modal" data-target="#myModal">添加设备</button>
+<button id="setAlarmLevel" class="btn btn-primary" data-toggle="modal" data-target="#thresholdModel">设备阈值</button>
 <button id="showAllTerminal" class="btn btn-info" onclick="showAllTerminal()">所有设备</button>
 <button id="backMap" class="btn btn-info" onclick="window.history.back()">返回地图</button>
 <span id="queryToggleBtn" onclick="toggleQuery()">
         <i class="fa fa-search-plus fa-fw fa-2x "></i>
         <i class="fa fa-search-minus fa-fw fa-2x hidden"></i>
     </span>
+<div class="modal fade" id="thresholdModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="thresholdModalLabel">修改设备阈值</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="col-lg-12 col-md-12 col-xs-12 form-inline">
+                        <h4>当前阈值：</h4>
+                        <label for="modelAlarmLevel" class="control-label">告警等级：</label>
+                        <input type="text" class="form-control" id="modelAlarmLevel">
+                        <label for="modelMinValue" class="control-label">最小值：</label>
+                        <input type="text" class="form-control" id="modelMinValue">
+                        <label for="modelMaxValue" class="control-label">最大值：</label>
+                        <input type="text" class="form-control" id="modelMaxValue">
+                    </div>
+                    <!--<div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">-->
+                        <!--<label for="plantCode" class="control-label">车间号:</label>-->
+                        <!--<input class="form-control" readonly="readonly" id="plantCode">-->
+                    <!--</div>-->
+                    <!--<div class="col-lg-6 col-md-6 col-xs-6 form-group">-->
+                        <!--<label for="territoryCode" class="control-label">责任区号:</label>-->
+                        <!--<input class="form-control " readonly="readonly" id="territoryCode">-->
+                    <!--</div>-->
+                    <!--<div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">-->
+                        <!--<label for="teamCode" class="control-label">班组号:</label>-->
+                        <!--<input class="form-control" readonly="readonly" id="teamCode">-->
+                    <!--</div>-->
+                </form>
+            </div>
+            <div class="modal-footer" >
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="float: right">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="terminalCode()" style="float: right;margin-right: 20px">修改信息</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -395,7 +435,7 @@
         <input type="text" class="form-control" name="queryCellar" id="queryCellar"></label>
     <div id="queryTerminalBtnTeam">
         <button type="button" id="queryTerminalBtn" class="btn btn-primary" onclick="queryTerminal()">查询</button>
-        <button type="button" id="resetQueryTerminalBtn" class="btn btn-info" onclick="resetQueryTerminal()">重置</button>
+        <button type="button" id="refreshQueryTerminalBtn" class="btn btn-info" onclick="refreshQueryTerminal()">刷新</button>
     </div>
 </div>
     <ul id="mainmenu" class="mainmenu" style="z-index: 9997" >
