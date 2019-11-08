@@ -1,0 +1,149 @@
+html, body { color:#222; font-family:Microsoft YaHei, Helvitica, Verdana, Tohoma, Arial, san-serif; margin:0; padding: 0; text-decoration: none; }
+img { border:0; }
+ul { list-style: none outside none; margin:0; padding: 0; }
+body {
+    background-color:#eee;
+}
+body .mainmenu:after { clear: both; content: " "; display: block; }
+
+body .mainmenu li{
+    float:left;
+    margin-left: 2.5%;
+    margin-top: 1.0%;
+    width: 30%;
+    border-radius:3px;
+    overflow:hidden;
+}
+
+body .mainmenu li a{ display:block;  color:black;   text-align:center }
+body .mainmenu li a b{
+    display:block; height:80px;
+}
+body .mainmenu li a img{
+    /*margin: 15px auto 15px;*/
+    /*width: 50px;*/
+    /*height: 50px;*/
+}
+
+body .mainmenu li a span{ display:block; height:30px; line-height:30px;background-color:#FFF; color: #999; font-size:14px; }
+
+/*body .mainmenu li:nth-child(8n+1) {background-color:#36A1DB}*/
+/*#maik {*/
+/*position: absolute;*/
+/*left: 0;*/
+/*top: 0;*/
+/*width: 0px;*/
+/*height: 400px;*/
+/*padding-left: 4px;*/
+/*background: #CCFFFF;*/
+/*overflow: hidden;*/
+/*transition: all 0.3s;*/
+/*}*/
+/*#maik:hover {*/
+/*width: 200px;*/
+/*}*/
+#cameraHideBar{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+}
+#cameraOperate{
+    padding: 4px 10px;
+    font-size: 12px;
+    color: whitesmoke;
+}
+#cameraContainer{
+    width: 300px;
+    height: 500px;
+    background: whitesmoke;
+    display: none;
+}
+
+#myPlayer{
+    width: 300px;
+    height: auto;
+}
+#mainBanner{
+    text-align: center;
+}
+#sensor_position{
+    text-align: center;
+    list-style-type: none;
+}
+#sensor_position li{
+    float: left;
+}
+#addTerminal{
+    position: absolute;
+    top: 0px;
+    left: 160px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: whitesmoke;
+}
+#showAllTerminal{
+    position: absolute;
+    top: 0px;
+    left: 240px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: whitesmoke;
+}
+#backMap{
+    position: absolute;
+    top: 0px;
+    left: 80px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: whitesmoke;
+}
+#queryToggleBtn{
+    display: none;
+}
+.battery{
+    float: right;
+    padding: 8px 0;
+    margin-right: 5px;
+}
+
+#sensor_position li{
+
+}
+
+/*.closeBtn{*/
+/*position: absolute;*/
+/*top:0px;*/
+/*right:0px;*/
+/*}*/
+
+
+/* 模态框样式 */
+.loading {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background-color: black;
+    opacity: 0.4;
+    z-index: 9999;
+}
+
+/* 动图样式 */
+.loading .gif {
+    height: 32px;
+    width: 32px;
+    background: url(../../images/loading.gif);
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    margin-left: -16px;
+    margin-top: -16px;
+    z-index: 9999;
+}
+
+
+#mainmenu{
+    z-index: 9997;
+}

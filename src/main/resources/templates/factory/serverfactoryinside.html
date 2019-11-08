@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>厂房地图</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="智能厂房管理系统">
+    <meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinspection.css}">
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinside.css}">
+    <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
+
+    <!--<link rel="stylesheet" href="/static/css/factoryinspection/factoryinspection.css" >-->
+    <!--<link rel="stylesheet" href="/static/css/factoryinspection/factoryinside.css" >-->
+    <!--<link rel="stylesheet" href="/static/css/font-awesome/css/font-awesome.min.css">-->
+    <!--<link rel="stylesheet" href="/static/css/bootstrap.min.css">-->
+
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery.timers-1.2.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/js/hls.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/ezuikit.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
+
+    <!--<script type="text/javascript" src="/static/scripts/plugin/jquery-1.10.2.min.js"></script>-->
+    <!--<script type="text/javascript" src="/static/scripts/plugin/jquery.timers-1.2.js"></script>-->
+    <!--<script type="text/javascript" src="/static/scripts/ezuikit/js/hls.js"></script>-->
+    <!--<script type="text/javascript" src="/static/scripts/ezuikit/ezuikit.js"></script>-->
+    <!--<script type="text/javascript" src="/static/scripts/bootstrap.min.js"></script>-->
+
+
+    <script type="text/javascript">
+        var pathname = window.location.pathname;
+        var projectName = pathname.substring(0,pathname.substr(1).indexOf('/') + 1);
+        function jumpToOtherInterface(that) {
+            var terminalCode = $(that).attr('data-terminalCode');
+            console.log(terminalCode);
+            console.log("正在跳转------");
+            window.location.href= projectName+"/serverfactory/serverfactorygraph?terminalCode=" + terminalCode;
+        }
+        var player;
+        $(document).ready(function() {
+            player = new EZUIKit.EZUIPlayer('myPlayer');
+        });
+
+        var click = true;
+        function showCameraContainer(){
+            var cameraContainer = document.getElementById('cameraContainer');
+            var cameraOperate = document.getElementById('cameraOperate');
+            if(click){
+                player.play();
+                cameraContainer.style.display = "block";
+                cameraOperate.innerText = "点击关闭";
+                click = false;
+            }else {
+                player.stop();
+                cameraContainer.style.display = "none";
+                cameraOperate.innerText = "视频窗口";
+                click = true;
+            }
+        }
+
+        function showAllTerminal() {
+
+        }
+
+        var toggle = true;
+        function toggleQuery() {
+            $('.fa-search-plus').toggleClass('hidden');
+            $('.fa-search-minus').toggleClass('hidden');
+            if(toggle){
+                $('#queryTerminal').css('display', 'block');
+                toggle = false;
+            }else{
+                $('#queryTerminal').css('display', 'none');
+                toggle = true;
+            }
+        }
+
+        var obj = {};
+        function terminalCode() {
+            var terminalCode = document.getElementById("recipient-name").value;
+            var inputData = {};
+            $('div.loading').show();
+            inputData.terminalCode = terminalCode;
+            console.log("success + " + inputData);
+            $.ajax({
+                //几个参数需要注意一下
+                type: "POST",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "/factoryinspection/serverfactory/addTerminal" ,//url
+                data: inputData,
+                success: function (result) {
+                    console.log(result);
+                    obj = result;
+                    // obj = JSON.parse(result);
+                    // console.log(obj);//打印服务端返回的数据(调试用)
+                    $('div.loading').hide();
+                    $("#plantCode").val(result.plantCode);
+                    $("#territoryCode").val(result.territoryCode);
+                    $("#teamCode").val(result.teamCode);
+                    $("#pitCode").val(result.pitCode);
+                    $("#cellarCode").val(result.cellarCode);
+                    $("#rowCode").val(result.rowCode);
+                    $("#saveTerminalBtn").attr("disabled", false);
+                },
+                error : function(result) {
+                    $('div.loading').hide();
+                    alert("发生错误");
+                }
+            });
+        }
+
+        function saveTerminalCode() {
+            console.log(obj);
+            $.ajax({
+                //几个参数需要注意一下
+                type: "POST",//方法类型
+                url: "/factoryinspection/factory/saveTerminal" ,//url
+                data: obj,
+                success: function (result) {
+                    alert(result);
+                    window.history.go(0);
+                },
+                error : function(result) {
+                    console.log(result);
+                }
+            });
+        }
+        function isEmpty(value){
+            if(value == null || value == "" || value == "undefined" || value == undefined || value == "null"){
+                return true;
+            }
+            else{
+                value = value.replace(/\s/g,"");
+                if(value == ""){
+                    return true;
+                }
+                return false;
+            }
+        }
+        function queryTerminal(){
+            var queryCollapse = document.getElementById("queryCollapse").value;
+            var queryRow = document.getElementById("queryRow").value;
+            var queryCellar = document.getElementById("queryCellar").value;
+            console.log(queryCollapse + " , " + queryRow + " , " + queryCellar);
+            var i=1;
+            $("#queryTerminalBtn").attr("disabled", true);
+            $("#mainmenu").children("li[class='mainmenuli']").each(function () {
+
+                var queryTerminalCollapse = $("#collapse" + i).text();
+                var queryTerminalRow = $("#row"+i).text();
+                var queryTerminalCellar = $("#cellar"+i).text();
+                console.log(queryTerminalCollapse + " , " + queryTerminalRow +" , " + queryTerminalCellar);
+                i = i+1;
+
+                if(isEmpty(queryCollapse) &&
+                    isEmpty(queryRow) &&
+                    isEmpty(queryCellar))
+                {
+                    console.log("idEmpty")
+                    $(this).css("display","none");
+                    alert("请输入查询条件");
+                    return;
+                }
+                if(queryCollapse == queryTerminalCollapse &&
+                    queryRow == "" &&
+                    queryCellar == "")
+                {
+                    console.log("collapse");
+                    $(this).css("display", "block");
+                    return;
+                }
+                if(queryCollapse == "" &&
+                    queryRow == queryTerminalRow &&
+                    queryCellar == "")
+                {
+                    console.log("row");
+                    $(this).css("display", "block");
+                    return;
+                }
+                if(queryCollapse == "" &&
+                    queryRow == "" &&
+                    queryCellar == queryTerminalCellar)
+                {
+                    console.log("cellar");
+                    $(this).css("display", "block");
+                    return;
+                }
+                if(queryCollapse == queryTerminalCollapse &&
+                    queryRow == queryTerminalRow &&
+                    queryCellar == "")
+                {
+                    console.log("collapse and row");
+                    $(this).css("display", "block");
+                    return;
+                }
+                if(queryCollapse == queryTerminalCollapse &&
+                    queryRow == "" &&
+                    queryCellar == queryCellar)
+                {
+                    console.log("collapse and cellar");
+                    $(this).css("display", "block");
+                    return;
+                }
+                if(queryCollapse == "" &&
+                    queryRow == queryTerminalRow &&
+                    queryCellar == queryTerminalCellar)
+                {
+                    console.log("row and cellar");
+                    $(this).css("display", "block");
+                    return;
+                }
+                if(queryCollapse != queryTerminalCollapse ||
+                    queryRow != queryTerminalRow ||
+                    queryCellar != queryTerminalCellar )
+                {
+                    console.log("aaa");
+                    $(this).css("display","none");
+                    return;
+                }
+            })
+        }
+
+        function resetQueryTerminal() {
+            window.history.go(0);
+        }
+
+    </script>
+
+    <style type="text/css">
+
+        .mainmenuli{
+            position: relative;
+        }
+        .sensorValueTagP{
+            margin-top:-5px !important;
+        }
+
+        /* 模态框样式 */
+        .loading {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            background-color: black;
+            opacity: 0.4;
+            z-index: 9999;
+        }
+
+        /* 动图样式 */
+        .loading .gif {
+            height: 32px;
+            width: 32px;
+            background: url(../static/img/loading.gif);
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            margin-left: -16px;
+            margin-top: -16px;
+            z-index: 9999;
+        }
+
+        @media (min-width:768px) {
+
+            #queryTerminal {
+                text-align: center;
+                width: 100%;
+                height: auto;
+            }
+            #queryTerminalBtnTeam{
+                display: inline-block;
+            }
+        }
+        @media (max-width:768px){
+            #mainBanner{
+                margin-top: 30px !important
+            }
+            /*.closeBtn{*/
+            /*margin-top: 20px!important*/
+            /*}*/
+            #queryTerminal{
+                display: none;
+                width: 100%;
+                height: auto;
+            }
+            .editBtn{
+                position: absolute;
+                top: 15px;
+                right: -2px;
+            }
+            #queryTerminal label {
+                display: inline-flex !important;
+            }
+
+            #queryTerminalBtnTeam{
+                display: block;
+            }
+            #queryToggleBtn{
+                display: block;
+                position: absolute;
+                top: 0;
+                right: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="mainBanner">
+    <span id="factoryName" style="font-size: 27px; font-weight: 600" th:text="${factory.factoryName}"></span>
+    <input id="factoryId" type="text" th:value="${factory.factoryId}" style="display: none">
+    <div id="refresh_time" align="center" style="position: absolute; right: 20px; top: 10px;">
+    </div>
+    <!--<div id="clock" align="center" style="position: absolute; right: 20px; top: 10px;"></div>-->
+</div>
+<div id="cameraHideBar" style="z-index: 9998;">
+    <button id="cameraOperate" class="btn btn-primary" onclick="showCameraContainer()">
+        视频窗口
+    </button>
+    <div id="cameraContainer">
+        <video id="myPlayer" class = "camera_player"
+               autoplay="false"
+               poster="/static/img/xiangmu.png" controls playsInline webkit-playsinline>
+            <source src="http://hls01open.ys7.com/openlive/e4c7455d1d754c94add2c2aaabc53a3e.m3u8" type="application/x-mpegURL" />
+        </video>
+    </div>
+</div>
+<!--<button id="addTerminal" class="btn btn-success" data-toggle="modal" data-target="#myModal">添加设备</button>-->
+<!--<button id="showAllTerminal" class="btn btn-info" onclick="showAllTerminal()">所有设备</button>-->
+<button id="backMap" class="btn btn-info" onclick="window.history.back()">返回地图</button>
+<span id="queryToggleBtn" onclick="toggleQuery()">
+        <i class="fa fa-search-plus fa-fw fa-2x "></i>
+        <i class="fa fa-search-minus fa-fw fa-2x hidden"></i>
+    </span>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">添加终端设备</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="recipient-name" class="control-label">设备ID:</label>
+                        <input type="text" class="form-control" id="recipient-name">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="plantCode" class="control-label">车间号:</label>
+                        <input class="form-control" readonly="readonly" id="plantCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="territoryCode" class="control-label">责任区号:</label>
+                        <input class="form-control " readonly="readonly" id="territoryCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="teamCode" class="control-label">班组号:</label>
+                        <input class="form-control" readonly="readonly" id="teamCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="pitCode" class="control-label">垮号:</label>
+                        <input class="form-control" readonly="readonly" id="pitCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="rowCode" class="control-label">排号:</label>
+                        <input class="form-control" readonly="readonly"  id="rowCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="cellarCode" class="control-label">窖号:</label>
+                        <input class="form-control" readonly="readonly"  id="cellarCode">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" >
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="float: right">关闭</button>
+                <button type="button" id="saveTerminalBtn" class="btn btn-success" onclick="saveTerminalCode()" style="float: right;margin-right: 20px" disabled>保存设备</button>
+                <button type="button" class="btn btn-primary" onclick="terminalCode()" style="float: right;margin-right: 20px">获取信息</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!--简易查询框-->
+<div id="queryTerminal" class="form-inline" style="text-align: center">
+    <label for="queryCollapse" class="form-inline">垮&nbsp&nbsp
+        <input type="text" class="form-control" name="queryCollapse" id="queryCollapse"></label>
+    <label for="queryRow" class="form-inline">排&nbsp&nbsp
+        <input type="text" class="form-control" name="queryRow" id="queryRow"></label>
+    <label for="queryCellar" class="form-inline">窖&nbsp&nbsp
+        <input type="text" class="form-control" name="queryCellar" id="queryCellar"></label>
+    <div id="queryTerminalBtnTeam">
+        <button type="button" id="queryTerminalBtn" class="btn btn-primary" onclick="queryTerminal()">查询</button>
+        <button type="button" id="resetQueryTerminalBtn" class="btn btn-info" onclick="resetQueryTerminal()">重置</button>
+    </div>
+</div>
+<ul id="mainmenu" class="mainmenu" style="z-index: 9997" >
+    <li class="mainmenuli" th:each="sensor,sensorStat:${sensors}">
+        <a class="editBtn">
+            <i class="fa fa-pencil-square-o fa-fw fa-1g "></i>
+        </a>
+        <p id="sensor_position">
+            <span>垮 <i th:text="${sensor.terminal.pitCode}" th:id="collapse+(${sensorStat.count})" class="queryTerminalCollapse" ></i></span>
+            <span>排 <i th:text="${sensor.terminal.rowCode}" th:id="row+(${sensorStat.count})" class="queryTerminalRow" ></i></span>
+            <span>窖 <i th:text="${sensor.terminal.cellarCode}" th:id="cellar+(${sensorStat.count})" class="queryTerminalCellar" ></i></span>
+        </p>
+        <a class="sensorValueTagA" href="javascript:void(0)" th:attr="data-terminalCode=${sensor.terminal.terminalCode}" th:onclick="jumpToOtherInterface(this)">
+            <p class="sensorValueTagP"><span style="display: inline-block;" th:text="'上层：'+${sensor.topTemp}"></span></p>
+            <p class="sensorValueTagP"><span style="display: inline-block;" th:text="'中层：'+${sensor.midTemp}"></span></p>
+            <p class="sensorValueTagP"><span style="display: inline-block;" th:text="'底层：'+${sensor.botTemp}"></span></p>
+            <div th:switch="${sensor.terminal.batteryState}">
+                <span th:case="'03'" style="color:forestgreen; background: whitesmoke"> <i class="fa fa-battery-4 fa-fw fa-1g" ></i>  电量全满</span>
+                <span th:case="'02'" style="color:forestgreen; background: whitesmoke"> <i class="fa fa-battery-3 fa-fw fa-1g" ></i>  电池余量70%</span>
+                <span th:case="'01'" style="color:darkorange; background: whitesmoke"> <i class="fa fa-battery-2 fa-fw fa-1g" ></i>  电池余量30%</span>
+                <span th:case="'00'" style="color:red; background: whitesmoke"> <i class="fa fa-battery-1 fa-fw fa-1g"></i>  电池余量10%</span>
+            </div>
+        </a>
+    </li>
+</ul>
+<!-- 模态框部分 -->
+<div class="loading" style="display:  none">
+    <div class="gif"></div>
+</div>
+</body>
+</html>

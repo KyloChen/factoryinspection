@@ -1,0 +1,35 @@
+html, body{
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#factory1{
+    width: 100%;
+    height: 100%;
+    color: #0e90d2;
+    background:black url(../static/img/loading.gif) 2px 2px no-repeat;
+    z-index: 9999;
+}
+
+#tag{
+    position: absolute;
+}
+
+#mymap{
+    width: 100%;
+    height: 100%;
+}
+
+area{
+    z-index: 9999;
+}
+
+img{
+    z-index: 9998;
+}
+#factoryMapContainer{
+    width: 100%;
+    height: 100%;
+}
