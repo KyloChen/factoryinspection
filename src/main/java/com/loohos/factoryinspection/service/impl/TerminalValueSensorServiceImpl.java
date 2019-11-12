@@ -119,4 +119,16 @@ public class TerminalValueSensorServiceImpl extends DaoSupport<TerminalValueSens
             return null;
         }
     }
+
+    @Override
+    public String getBatteryStateByTerminal(Terminal terminalId) {
+        Query query = em.createQuery("select o.batteryState from TerminalValueSensor o where o.terminalId = ?1 order by o.createdTime desc");
+        query.setParameter(1, terminalId);
+        query.setMaxResults(1);
+        try {
+            return (String) query.getSingleResult();
+        }catch (Exception e){
+            return null;
+        }
+    }
 }

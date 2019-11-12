@@ -21,4 +21,6 @@ public interface TerminalValueSensorService extends DAO<TerminalValueSensor> {
     List<TerminalValueSensor> getHistoryByDateRange(Terminal terminalId, Date startDate, Date endDate);
 
     TerminalValueSensor getLatestSensorByTerminalId(Terminal terminalId);
+
+    String getBatteryStateByTerminal(Terminal terminal);
 }

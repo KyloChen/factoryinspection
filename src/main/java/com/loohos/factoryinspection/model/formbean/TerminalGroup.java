@@ -9,6 +9,7 @@ public class TerminalGroup extends BaseFormBean {
     private double topTemp;
     private double midTemp;
     private double botTemp;
+    private String batteryState;
     private ConfigAlarmLevel topAlarmLevel;
     private ConfigAlarmLevel midAlarmLevel;
     private ConfigAlarmLevel botAlarmLevel;
@@ -43,6 +44,14 @@ public class TerminalGroup extends BaseFormBean {
 
     public void setBotTemp(double botTemp) {
         this.botTemp = botTemp;
+    }
+
+    public String getBatteryState() {
+        return batteryState;
+    }
+
+    public void setBatteryState(String batteryState) {
+        this.batteryState = batteryState;
     }
 
     public ConfigAlarmLevel getTopAlarmLevel() {

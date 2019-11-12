@@ -1,5 +1,6 @@
 package com.loohos.factoryinspection.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.loohos.factoryinspection.model.config.ConfigAlarmLevel;
@@ -86,6 +87,7 @@ public class FactoryController {
             double topTemp = terminalValueSensorService.getLatestTopTempByTerminal(terminal);
             double midTemp = terminalValueSensorService.getLatestMidTempByTerminal(terminal);
             double botTemp = terminalValueSensorService.getLatestBotTempByTerminal(terminal);
+            String batteryState = terminalValueSensorService.getBatteryStateByTerminal(terminal);
             TerminalGroup temp = new TerminalGroup();
             ConfigAlarmLevel topAlarmLevel = configAlarmLevelService.getLevelByTemp(topTemp);
             ConfigAlarmLevel midAlarmLevel = configAlarmLevelService.getLevelByTemp(midTemp);
@@ -97,6 +99,7 @@ public class FactoryController {
             temp.setMidAlarmLevel(midAlarmLevel);
             temp.setBotTemp(botTemp);
             temp.setBotAlarmLevel(botAlarmLevel);
+            temp.setBatteryState(batteryState);
             temps.add(temp);
         }
         model.put("factory", factory);
@@ -253,6 +256,80 @@ public class FactoryController {
             }
         }
     }
+
+    /**
+     * 获取设备阈值
+     */
+    @RequestMapping(value = "getThresholdTable",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String getThresholdTable(ModelMap modelMap){
+        List<ConfigAlarmLevel> alarmLevels = configAlarmLevelService.getScrollData().getResultList();
+        Collections.sort(alarmLevels, new Comparator<ConfigAlarmLevel>() {
+            @Override
+            public int compare(ConfigAlarmLevel u1, ConfigAlarmLevel u2) {
+                if (u1.getAlarmLevel() > u2.getAlarmLevel()) {
+                    return -1;
+                }
+                if (u1.getAlarmLevel() == u2.getAlarmLevel()) {
+                    return 0;
+                }
+                return 1;
+            }
+        });
+        String retString = JSON.toJSONString(alarmLevels);
+        return retString;
+    }
+    /**
+     * 添加阈值
+     */
+    @RequestMapping(value = "setThreshold",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String setThreshold(@ModelAttribute ConfigAlarmLevel inputData){
+        logger.info(inputData.toString());
+        //校验
+        List<ConfigAlarmLevel> alarmLevels = configAlarmLevelService.getScrollData().getResultList();
+        for(ConfigAlarmLevel alarmLevel : alarmLevels)
+        {
+            if(alarmLevel.getAlarmLevel() == inputData.getAlarmLevel()){
+                return "报警等级已存在，请重新输入";
+            }
+        }
+        //保存
+        if (inputData.getAlarmLevel() == 3){
+            inputData.setAlarmId(HttpClientUtils.getUUID());
+            inputData.setAlarmColor("red");
+            configAlarmLevelService.save(inputData);
+            return "设置高位级别成功";
+        }else if(inputData.getAlarmLevel() == 2){
+            inputData.setAlarmId(HttpClientUtils.getUUID());
+            inputData.setAlarmColor("orange");
+            configAlarmLevelService.save(inputData);
+            return "设置预警级别成功";
+        }else if(inputData.getAlarmLevel() == 1){
+            inputData.setAlarmId(HttpClientUtils.getUUID());
+            inputData.setAlarmColor("green");
+            configAlarmLevelService.save(inputData);
+            return "设置安全级别成功";
+        }
+        //保存失败
+        return "设置阈值失败.";
+    }
+
+    /**
+     * 删除阈值
+     */
+    @RequestMapping(value = "deleteThreshold",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String deleteThreshold(@ModelAttribute ConfigAlarmLevel inputData){
+        int alarmLevel1 = inputData.getAlarmLevel();
+        ConfigAlarmLevel alarmLevel = configAlarmLevelService.getLevelByLevel(alarmLevel1);
+        if(alarmLevel != null){
+            configAlarmLevelService.delete(alarmLevel.getAlarmId());
+            return "删除阈值成功";
+        }else {
+            return "数据不存在，请更新页面";
+        }
+    }
     /**
      *485取终端位置信息
      * */
@@ -281,9 +358,13 @@ public class FactoryController {
             byte[] respMessage = HexUtils.hexStringToByte(sb.toString());
             logger.info("rs接收数据长度： " + respMessage.length);
             if(respMessage.length != 60){
-                return "指令发送错误";
+                logger.info("terminal1 occur a problem, try to save a zero value");
+                terminal = null;
+                Gson gson = new Gson();
+                String retString = gson.toJson(terminal);
+                System.out.println(retString);
+                return retString;
             }
-
             byte[] terminalId = new byte[6];
             System.arraycopy(respMessage, 26, terminalId, 0, 6);
             System.out.println(HexUtils.bytesToHexString(terminalId));
@@ -445,7 +526,17 @@ public class FactoryController {
                 byte[] respMessage = HexUtils.hexStringToByte(sb.toString());
                 logger.info("rs接收数据长度： " + respMessage.length);
                 if(respMessage.length != 60){
-                    return;
+                    logger.info("terminal2 occur a problem, try to save a zero value");
+                    TerminalValueSensor sensor = new TerminalValueSensor();
+                    sensor.setSensorId(HttpClientUtils.getUUID());
+                    sensor.setTopTemp(3276.7);
+                    sensor.setMidTemp(3276.7);
+                    sensor.setBotTemp(3276.7);
+                    sensor.setCreatedTime(new Date());
+                    sensor.setTerminalId(terminal);
+                    sensor.setBatteryState("00");
+                    terminalValueSensorService.save(sensor);
+                    continue;
                 }
 
                 byte[] terminalId = new byte[6];

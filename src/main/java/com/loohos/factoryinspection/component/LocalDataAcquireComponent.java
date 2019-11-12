@@ -9,7 +9,8 @@ import com.loohos.factoryinspection.service.TerminalValueSensorService;
 import com.loohos.factoryinspection.utils.HexUtils;
 import com.loohos.factoryinspection.utils.HttpClientUtils;
 import com.loohos.factoryinspection.utils.SerialCommThread;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,7 +30,7 @@ public class LocalDataAcquireComponent  {
     @Value("${com.loohos.machineType}")
     private String machineType;
     //遍历厂房所有设备，发送485指令，将数据存在local端
-    private static Logger logger = Logger.getLogger(HttpClientUtils.class);
+    private static Logger logger = LoggerFactory.getLogger(HttpClientUtils.class);
     @Resource(name = "factoryServiceImpl") private FactoryService factoryService;
     @Resource(name = "terminalServiceImpl") private TerminalService terminalService;
     @Resource(name = "terminalValueSensorServiceImpl") private TerminalValueSensorService terminalValueSensorService;
@@ -102,7 +103,17 @@ public class LocalDataAcquireComponent  {
                 byte[] respMessage = HexUtils.hexStringToByte(sb.toString());
                 logger.info("rs接收数据长度： " + respMessage.length);
                 if(respMessage.length != 60){
-                    return;
+                    logger.info("terminal occur a problem, try to save a zero value");
+                    TerminalValueSensor sensor = new TerminalValueSensor();
+                    sensor.setSensorId(HttpClientUtils.getUUID());
+                    sensor.setTopTemp(3276.7);
+                    sensor.setMidTemp(3276.7);
+                    sensor.setBotTemp(3276.7);
+                    sensor.setCreatedTime(new Date());
+                    sensor.setTerminalId(terminal);
+                    sensor.setBatteryState("00");
+                    terminalValueSensorService.save(sensor);
+                    continue;
                 }
 
                 byte[] terminalId = new byte[6];

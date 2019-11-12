@@ -23,4 +23,16 @@ public class ConfigAlarmLevelServiceImpl extends DaoSupport<ConfigAlarmLevel> im
             return null;
         }
     }
+
+    @Override
+    public ConfigAlarmLevel getLevelByLevel(int alarmlevel) {
+        Query query = em.createQuery("select o from ConfigAlarmLevel o where o.alarmLevel = ?1");
+        query.setParameter(1, alarmlevel);
+        query.setMaxResults(1);
+        try {
+            return (ConfigAlarmLevel) query.getSingleResult();
+        }catch (Exception e){
+            return null;
+        }
+    }
 }
