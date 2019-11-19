@@ -1,8 +1,10 @@
 package com.loohos.factoryinspection.component;
 
+import com.alibaba.fastjson.JSONArray;
 import com.loohos.factoryinspection.model.local.LocalSite;
 import com.loohos.factoryinspection.model.local.Terminal;
 import com.loohos.factoryinspection.model.local.TerminalValueSensor;
+import com.loohos.factoryinspection.service.ConfigAlarmLevelService;
 import com.loohos.factoryinspection.service.FactoryService;
 import com.loohos.factoryinspection.service.TerminalService;
 import com.loohos.factoryinspection.service.TerminalValueSensorService;
@@ -18,10 +20,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 
 @EnableScheduling
@@ -29,20 +28,23 @@ import java.util.concurrent.BlockingQueue;
 public class LocalDataAcquireComponent  {
     @Value("${com.loohos.machineType}")
     private String machineType;
+    @Value("${com.loohos.serverUrl}")
+    private String serverUrl;
+    @Value("${com.loohos.loaduploadvalue}")
+    private String loaduploadvalue;
     //遍历厂房所有设备，发送485指令，将数据存在local端
     private static Logger logger = LoggerFactory.getLogger(HttpClientUtils.class);
     @Resource(name = "factoryServiceImpl") private FactoryService factoryService;
     @Resource(name = "terminalServiceImpl") private TerminalService terminalService;
     @Resource(name = "terminalValueSensorServiceImpl") private TerminalValueSensorService terminalValueSensorService;
+    @Resource(name = "configAlarmLevelServiceImpl") private ConfigAlarmLevelService configAlarmLevelService;
 
     SerialCommThread commThread = new SerialCommThread();
 
     @PostConstruct
     public void initLocalConfig(){
         logger.info("Begin load LocalConfig");
-
     }
-
 
     @Scheduled(cron = "10 */5 * * * ?")
     public void threadStart(){
@@ -52,7 +54,6 @@ public class LocalDataAcquireComponent  {
             return;
         }
         logger.info(">>>>>>>>>>>>>period start to a save local Sensor<<<<<<<<<<<<<<<");
-
         if(commThread.isAlive()){
             getInfoFromTerminal();
             logger.info("thread is alive.");
@@ -78,6 +79,10 @@ public class LocalDataAcquireComponent  {
         List<Terminal> terminals = terminalService.getScrollData().getResultList();
         for(Terminal terminal:terminals)
         {
+            if(!terminal.getInUsing()){
+                logger.info("found banned terminal: " + terminal.getTerminalCode() );
+                continue;
+            }
             final String rsPrefix = "7E380F"; //标志字符7E 帧格式38(发送) 帧长度0F
             String rsMidTerminalfix = terminal.getTerminalCode(); //终端ID
             final String rsPartitionSendCode = "00"; //分割发送码
@@ -109,6 +114,9 @@ public class LocalDataAcquireComponent  {
                     sensor.setTopTemp(3276.7);
                     sensor.setMidTemp(3276.7);
                     sensor.setBotTemp(3276.7);
+                    sensor.setTopAlarmLevel(3);
+                    sensor.setMidAlarmLevel(3);
+                    sensor.setBotAlarmLevel(3);
                     sensor.setCreatedTime(new Date());
                     sensor.setTerminalId(terminal);
                     sensor.setBatteryState("00");
@@ -165,6 +173,12 @@ public class LocalDataAcquireComponent  {
                 sensor.setTopTemp(topTemp1);
                 sensor.setMidTemp(midTemp1);
                 sensor.setBotTemp(botTemp1);
+                int topAlarmLevel = configAlarmLevelService.getLevelByTemp(topTemp1);
+                int midAlarmLevel = configAlarmLevelService.getLevelByTemp(midTemp1);
+                int botAlarmLevel = configAlarmLevelService.getLevelByTemp(botTemp1);
+                sensor.setTopAlarmLevel(topAlarmLevel);
+                sensor.setMidAlarmLevel(midAlarmLevel);
+                sensor.setBotAlarmLevel(botAlarmLevel);
                 sensor.setCreatedTime(new Date());
                 sensor.setTerminalId(terminal);
                 sensor.setBatteryState(batteryState1);
@@ -173,5 +187,46 @@ public class LocalDataAcquireComponent  {
                 e.printStackTrace();
             }
         }
+        logger.info("End getting info, start to sending info to server");
+        //获取完毕 直接上传至服务器
+        String localConfig = machineType;
+        if(!localConfig.equals("local")){
+            return;
+        }
+        logger.info("Start send a terminal value");
+        String retInfo = "";
+        List<TerminalValueSensor> sensors = getLatestTerminal();
+        if(sensors.isEmpty()) return;
+//        Gson gson = new Gson();
+//        JsonObject deviceJson = gson.fromJson(gson.toJson(sensor), JsonObject.class);
+        JSONArray deviceJson = (JSONArray) JSONArray.toJSON(sensors);
+        logger.info("jsonarray:   "+deviceJson);
+        String centerUrl = serverUrl+loaduploadvalue;
+        Map<String, String> headParams = new HashMap<>();
+        headParams.put("Content-type", "application/json; charset=utf-8");
+        headParams.put("SessionId", HttpClientUtils.getSessionId());
+        retInfo = HttpClientUtils.getInstance().doPostWithJsonArray(centerUrl, headParams, deviceJson);
+        if(retInfo.trim().equals("")){
+            logger.error("Upload to center server failed. ");
+        }else {
+            logger.info(">>>>>>>>>>>>> retinfo is : " + retInfo);
+        }
+
+        logger.info("End upload info");
+
     }
+
+    private List<TerminalValueSensor> getLatestTerminal(){
+        List<Terminal> terminals = terminalService.getScrollData().getResultList();
+        List<TerminalValueSensor> sensors = new ArrayList<>();
+        for(Terminal terminal : terminals)
+        {
+            TerminalValueSensor sensor = terminalValueSensorService.getLatestSensorByTerminalId(terminal);
+            sensor.setSensorId(HttpClientUtils.getUUID());
+            sensors.add(sensor);
+        }
+        System.out.println(sensors);
+        return sensors;
+    }
+
 }

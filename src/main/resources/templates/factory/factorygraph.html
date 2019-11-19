@@ -143,6 +143,15 @@
     var hisDates = JSON.parse([[${hisDates}]]);
     // 指定图表的配置项和数据
     var dailyOption = {
+        noDataLoadingOption: {
+            text: '暂无数据',
+            effect: 'bubble',
+            effectOption: {
+                effect: {
+                    n: 0
+                }
+            }
+        },
         title: {
             text: '窖藏温度',
             subtext:''
@@ -181,8 +190,6 @@
                 //处理时间格式
                 formatter: function (value, index) {
                     // 格式化成月/日，只在第一个刻度显示年份
-                    console.log(index);
-
                     var date = new Date(value);
                     var texts = [date.getHours(), date.getMinutes()];
                     if (index === 0) {
@@ -228,6 +235,15 @@
 
     };
     var historyOption = {
+        noDataLoadingOption: {
+            text: '暂无数据',
+            effect: 'bubble',
+            effectOption: {
+                effect: {
+                    n: 0
+                }
+            }
+        },
         title: {
             text: '历史窖藏温度',
             subtext: ''
@@ -311,6 +327,7 @@
         $('#dateTimeSelecter').css("display","block");
         $('#dateTimeQueryBtn').css("display","block");
         myChart.clear();
+        myChart.hideLoading();
         myChart.setOption(historyOption);
     }
 
@@ -318,6 +335,7 @@
         $('#dateTimeSelecter').css("display","none");
         $('#dateTimeQueryBtn').css("display","none");
         myChart.clear();
+        myChart.hideLoading();
         myChart.setOption(dailyOption);
     }
 
@@ -378,6 +396,15 @@
                 // var obj = JSON.parse(result);
                 // console.log(obj);
                 var historyQueryOption = {
+                    noDataLoadingOption: {
+                        text: '暂无数据',
+                        effect: 'bubble',
+                        effectOption: {
+                            effect: {
+                                n: 0
+                            }
+                        }
+                    },
                     title: {
                         text: '历史窖藏温度',
                         subtext: ''
@@ -455,6 +482,7 @@
                     ]
                 };
                 myChart.clear();
+                myChart.hideLoading();
                 myChart.setOption(historyQueryOption);
             },
             error : function(result) {

@@ -2,11 +2,14 @@ package com.loohos.factoryinspection.model.local;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Terminal {
     private String terminalId;
     private String terminalCode;
+    private boolean inUsing = true;
     private Factory factoryId;
     private String plantCode;
     private String territoryCode;
@@ -22,7 +25,7 @@ public class Terminal {
     private Date createdTime;
     private String createdBy;
 
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    //@GeneratedValue(strategy=GenerationType.AUTO)
     @Id
     @Column(length = 40, nullable = false)
     public String getTerminalId() {
@@ -42,7 +45,7 @@ public class Terminal {
         this.terminalCode = terminalCode;
     }
 
-    @ManyToOne(cascade = {CascadeType.REFRESH})
+    @ManyToOne(cascade = {CascadeType.REFRESH, CascadeType.DETACH}, fetch = FetchType.EAGER)
     @JoinColumn(name = "factory_id")
     public Factory getFactoryId() {
         return factoryId;
@@ -116,4 +119,13 @@ public class Terminal {
     public String getCreatedBy() { return createdBy; }
 
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+
+    @Column(nullable = false)
+    public boolean getInUsing() {
+        return inUsing;
+    }
+
+    public void setInUsing(boolean inUsing) {
+        this.inUsing = inUsing;
+    }
 }

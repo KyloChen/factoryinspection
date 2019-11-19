@@ -12,4 +12,7 @@ public interface TerminalService extends DAO<Terminal> {
     Terminal getIdByCode(String terminalCode);
 
     Terminal getLastestTerminal();
+
+    Terminal getTerminalById(String terminalId);
+
 }

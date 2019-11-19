@@ -45,6 +45,12 @@ public class FactoryController {
     private String serverUrl;
     @Value("${com.loohos.loaduploadterminal}")
     private String loaduploadterminal;
+    @Value("${com.loohos.loaduploaddeleteterminal}")
+    private String loaduploaddeleteterminal;
+    @Value("${com.loohos.loaduploadthreshold}")
+    private String loaduploadthreshold;
+    @Value("${com.loohos.loaduploaddeletethreshold}")
+    private String loaduploaddeletethreshold;
     @Resource(name = "factoryServiceImpl") private FactoryService factoryService;
     @Resource(name = "terminalServiceImpl") private TerminalService terminalService;
     @Resource(name = "terminalValueSensorServiceImpl") private TerminalValueSensorService terminalValueSensorService;
@@ -76,6 +82,7 @@ public class FactoryController {
         //查厂区管辖的所有终端，组装终端与其最新一条数据
         Factory factory = factoryService.getFactoryById(factoryId);
         request.getSession().setAttribute("factoryId", factoryId);
+        //通过factory取terminal，terminal需要inUsing为true的
         List<Terminal> terminals = terminalService.getTerminalsByFactory(factory);
         System.out.println(terminals);
         List<TerminalGroup> temps = new ArrayList<>();
@@ -88,17 +95,17 @@ public class FactoryController {
             double midTemp = terminalValueSensorService.getLatestMidTempByTerminal(terminal);
             double botTemp = terminalValueSensorService.getLatestBotTempByTerminal(terminal);
             String batteryState = terminalValueSensorService.getBatteryStateByTerminal(terminal);
+            int topAlarmLevel = terminalValueSensorService.getLatestTopAlarmLevelByTerminal(terminal);
+            int midAlarmLevel = terminalValueSensorService.getLatestMidAlarmLevelByTerminal(terminal);
+            int botAlarmLevel = terminalValueSensorService.getLatestBotAlarmLevelByTerminal(terminal);
             TerminalGroup temp = new TerminalGroup();
-            ConfigAlarmLevel topAlarmLevel = configAlarmLevelService.getLevelByTemp(topTemp);
-            ConfigAlarmLevel midAlarmLevel = configAlarmLevelService.getLevelByTemp(midTemp);
-            ConfigAlarmLevel botAlarmLevel = configAlarmLevelService.getLevelByTemp(botTemp);
             temp.setTerminal(terminal);
             temp.setTopTemp(topTemp);
             temp.setTopAlarmLevel(topAlarmLevel);
-            temp.setMidTemp(midTemp);
             temp.setMidAlarmLevel(midAlarmLevel);
-            temp.setBotTemp(botTemp);
             temp.setBotAlarmLevel(botAlarmLevel);
+            temp.setMidTemp(midTemp);
+            temp.setBotTemp(botTemp);
             temp.setBatteryState(batteryState);
             temps.add(temp);
         }
@@ -116,6 +123,7 @@ public class FactoryController {
             @RequestParam String terminalCode,
             ModelMap model)
     {
+        //get id by code and inUsing
         Terminal terminalId = terminalService.getIdByCode(terminalCode);
         List<TerminalValueSensor> sensors = terminalValueSensorService.getSensorsByTerminalAndDateASC(terminalId);
         model.put("terminalCode", terminalCode);
@@ -132,6 +140,16 @@ public class FactoryController {
         }else{
             for (TerminalValueSensor sensor: sensors) {
                 logger.info("got daily sensor.");
+                //TODO 目前任一异常即处理 如果只有一个或两个部位异常呢？
+                if(
+                        (sensor.getTopTemp()==0 || sensor.getTopTemp() == 3276.7)
+                        || (sensor.getMidTemp()==0 || sensor.getMidTemp() == 3276.7)
+                        || (sensor.getBotTemp() == 0 || sensor.getBotTemp() == 3276.7)
+                        )
+                {
+                    logger.info("异常数据");
+                    continue;
+                }
                 topTemps.add(sensor.getTopTemp());
                 midTemps.add(sensor.getMidTemp());
                 botTemps.add(sensor.getBotTemp());
@@ -167,6 +185,15 @@ public class FactoryController {
             List<Date> hisDates = new ArrayList<>();
             for(TerminalValueSensor sensor: historySensors)
             {
+                if(
+                        (sensor.getTopTemp()==0 || sensor.getTopTemp() == 3276.7)
+                                || (sensor.getMidTemp()==0 || sensor.getMidTemp() == 3276.7)
+                                || (sensor.getBotTemp() == 0 || sensor.getBotTemp() == 3276.7)
+                        )
+                {
+                    logger.info("异常数据");
+                    continue;
+                }
                 logger.info("got history sensor.");
                 hisTopTemps.add(sensor.getTopTemp());
                 hisMidTemps.add(sensor.getMidTemp());
@@ -189,8 +216,6 @@ public class FactoryController {
             String retString7 = gson7.toJson(hisDates);
             model.put("hisDates", retString7);
         }
-
-
         return "factory/factorygraph";
     }
 
@@ -205,6 +230,7 @@ public class FactoryController {
                                    ModelMap model){
         System.out.println(inputData.getStartDate() + " , " + inputData.getEndDate());
         String terminalCode = inputData.getTerminalCode();
+        //get id by code and inUsing
         Terminal terminalId = terminalService.getIdByCode(terminalCode);
         DateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
         Date startDate = null;
@@ -219,11 +245,21 @@ public class FactoryController {
             List<Double> historyBotTemps = new ArrayList<>();
             List<Date> historyDates = new ArrayList<>();
             for (TerminalValueSensor historySensor: sensorList) {
+                if(
+                        (historySensor.getTopTemp()==0 || historySensor.getTopTemp() == 3276.7)
+                                || (historySensor.getMidTemp()==0 || historySensor.getMidTemp() == 3276.7)
+                                || (historySensor.getBotTemp() == 0 || historySensor.getBotTemp() == 3276.7)
+                        )
+                {
+                    logger.info("异常数据");
+                    continue;
+                }
                 historyTopTemps.add(historySensor.getTopTemp());
                 historyMidTemps.add(historySensor.getMidTemp());
                 historyBotTemps.add(historySensor.getBotTemp());
                 historyDates.add(historySensor.getCreatedTime());
             }
+
             QueryDateRangeResult rangeResult = new QueryDateRangeResult();
             rangeResult.setRangeTopTemp(historyTopTemps);
             rangeResult.setRangeMidTemp(historyMidTemps);
@@ -239,11 +275,21 @@ public class FactoryController {
     }
 
     /**
-     *添加终端
+     *添加终端信息
      * */
     @RequestMapping(value = "/addTerminal")
     @ResponseBody
     public String addTerminal(@ModelAttribute Terminal inputData){
+        List<Terminal> terminals = terminalService.getScrollData().getResultList();
+        for(Terminal terminal: terminals){
+            if(terminal.getTerminalCode().equals(inputData.getTerminalCode()))
+            {
+                if(terminal.getInUsing()){
+                    return null;
+                }
+            }
+        }
+
         if(commThread.isAlive()){
             return getTerminalLoc(inputData);
         }else{
@@ -255,6 +301,70 @@ public class FactoryController {
                 return getTerminalLoc(inputData);
             }
         }
+    }
+
+
+    /**
+     * 保存终端
+     */
+    @RequestMapping(value = "/saveTerminal")
+    @ResponseBody
+    public String saveTerminal(HttpServletRequest request,
+                               HttpServletResponse response,
+                               @ModelAttribute Terminal inputData,
+                               ModelMap model){
+        System.out.println(inputData);
+        inputData.setCreatedTime(new Date());
+        Factory factory = factoryService.getFactoryById(request.getSession().getAttribute("factoryId").toString());
+        inputData.setFactoryId(factory);
+        List<Terminal> terminals = terminalService.getScrollData().getResultList();
+        for(Terminal terminal : terminals){
+            if(!terminal.getInUsing())
+            {
+                logger.info("设备已禁用");
+                continue;
+            }
+            if(inputData.getTerminalCode().equals(terminal.getTerminalCode()))
+            {
+                return "设备编号已存在，添加设备失败";
+            }
+        }
+        JSONObject terminalJson = (JSONObject) JSONObject.toJSON(inputData);
+        logger.info("jsonarray:   "+terminalJson);
+        inputData.setTerminalId(HttpClientUtils.getUUID());
+        terminalService.save(inputData);
+        String centerUrl = serverUrl+loaduploadterminal;
+        String retInfo = sendToServer(terminalJson, centerUrl);
+        logger.info(">>>>>>>retinfo is : " + retInfo);
+        return "add success!";
+    }
+
+
+    /**
+     *删除终端
+     * */
+    @RequestMapping(value = "/deleteTerminal")
+    @ResponseBody
+    public String deleteTerminal(@ModelAttribute Terminal inputData){
+        String terminalId = inputData.getTerminalId();
+        Terminal terminal = terminalService.getTerminalById(terminalId);
+        logger.info(terminal.toString());
+        try{
+            terminal.setInUsing(false);
+            terminalService.update(terminal);
+            String centerUrl = serverUrl+loaduploaddeleteterminal;
+            JSONObject deleteTerminalJson = new JSONObject();
+            deleteTerminalJson.put("operate", "deleteTerminal");
+            deleteTerminalJson.put("terminalId", terminal.getTerminalId());
+            String retInfo = sendToServer(deleteTerminalJson, centerUrl);
+            logger.info("删除服务器设备 retinfo is : " + retInfo);
+            return "删除设备成功.";
+        }catch (Exception e){
+            logger.info(e.toString());
+            return "删除设备失败.";
+        }
+
+
     }
 
     /**
@@ -286,7 +396,24 @@ public class FactoryController {
     @ResponseBody
     public String setThreshold(@ModelAttribute ConfigAlarmLevel inputData){
         logger.info(inputData.toString());
-        //校验
+        //校验范围
+        double minValue = inputData.getMinValue();
+        double maxValue = inputData.getMaxValue();
+        if(maxValue < minValue){
+            return "最小值不能超过最大值，请重新设置";
+        }
+        int minRangeLevel = configAlarmLevelService.getIsOrNotUnderRange(minValue);
+        int maxRangeLevel = configAlarmLevelService.getIsOrNotUnderRange(maxValue);
+        if(minRangeLevel !=0 && maxRangeLevel != 0){
+            return "最大与最小阈值与等级 " + minRangeLevel + " 范围重合，请重新设置";
+        }
+        else if(minRangeLevel != 0){
+            return "最小阈值与等级 " + minRangeLevel + " 范围重合，请重新设置";
+        }else if(maxRangeLevel != 0){
+            return "最大阈值与等级 " + maxRangeLevel + " 范围重合，请重新设置";
+        }
+
+        //校验重复
         List<ConfigAlarmLevel> alarmLevels = configAlarmLevelService.getScrollData().getResultList();
         for(ConfigAlarmLevel alarmLevel : alarmLevels)
         {
@@ -298,16 +425,31 @@ public class FactoryController {
         if (inputData.getAlarmLevel() == 3){
             inputData.setAlarmId(HttpClientUtils.getUUID());
             inputData.setAlarmColor("red");
+            JSONObject terminalJson = (JSONObject) JSONObject.toJSON(inputData);
+            logger.info("jsonarray:   "+terminalJson);
+            String centerUrl = serverUrl+loaduploadthreshold;
+            String retInfo = sendToServer(terminalJson, centerUrl);
+            logger.info(">>>>>>>retinfo is : " + retInfo);
             configAlarmLevelService.save(inputData);
-            return "设置高位级别成功";
+            return "设置高危级别成功";
         }else if(inputData.getAlarmLevel() == 2){
             inputData.setAlarmId(HttpClientUtils.getUUID());
             inputData.setAlarmColor("orange");
+            JSONObject terminalJson = (JSONObject) JSONObject.toJSON(inputData);
+            logger.info("jsonarray:   "+terminalJson);
+            String centerUrl = serverUrl+loaduploadthreshold;
+            String retInfo = sendToServer(terminalJson, centerUrl);
+            logger.info(">>>>>>>retinfo is : " + retInfo);
             configAlarmLevelService.save(inputData);
             return "设置预警级别成功";
         }else if(inputData.getAlarmLevel() == 1){
             inputData.setAlarmId(HttpClientUtils.getUUID());
             inputData.setAlarmColor("green");
+            JSONObject terminalJson = (JSONObject) JSONObject.toJSON(inputData);
+            logger.info("jsonarray:   "+terminalJson);
+            String centerUrl = serverUrl+loaduploadthreshold;
+            String retInfo = sendToServer(terminalJson, centerUrl);
+            logger.info(">>>>>>>retinfo is : " + retInfo);
             configAlarmLevelService.save(inputData);
             return "设置安全级别成功";
         }
@@ -323,12 +465,20 @@ public class FactoryController {
     public String deleteThreshold(@ModelAttribute ConfigAlarmLevel inputData){
         int alarmLevel1 = inputData.getAlarmLevel();
         ConfigAlarmLevel alarmLevel = configAlarmLevelService.getLevelByLevel(alarmLevel1);
-        if(alarmLevel != null){
-            configAlarmLevelService.delete(alarmLevel.getAlarmId());
-            return "删除阈值成功";
-        }else {
-            return "数据不存在，请更新页面";
-        }
+        String alarmId = alarmLevel.getAlarmId();
+            try{
+                configAlarmLevelService.delete(alarmId);
+                String centerUrl = serverUrl+loaduploaddeletethreshold;
+                JSONObject deleteTerminalJson = new JSONObject();
+                deleteTerminalJson.put("operate", "deleteThreshold");
+                deleteTerminalJson.put("alarmId", alarmId);
+                String retInfo = sendToServer(deleteTerminalJson, centerUrl);
+                logger.info("删除服务器设备 retinfo is : " + retInfo);
+                return "删除阈值成功.";
+            }catch (Exception e){
+                logger.info(e.toString());
+                return "删除阈值失败.";
+            }
     }
     /**
      *485取终端位置信息
@@ -359,11 +509,7 @@ public class FactoryController {
             logger.info("rs接收数据长度： " + respMessage.length);
             if(respMessage.length != 60){
                 logger.info("terminal1 occur a problem, try to save a zero value");
-                terminal = null;
-                Gson gson = new Gson();
-                String retString = gson.toJson(terminal);
-                System.out.println(retString);
-                return retString;
+                return null;
             }
             byte[] terminalId = new byte[6];
             System.arraycopy(respMessage, 26, terminalId, 0, 6);
@@ -415,7 +561,7 @@ public class FactoryController {
             Long period = Long.parseLong(HexUtils.bytesToHexString(periodId),16);
             Long workHour = Long.parseLong(HexUtils.bytesToHexString(workTimeId),16);
             String batteryState1 = HexUtils.bytesToHexString(batteryState);
-            terminal1.setTerminalId(HttpClientUtils.getUUID());
+//            terminal1.setTerminalId(HttpClientUtils.getUUID());
             terminal1.setTerminalCode(terminalId1);
             terminal1.setTerritoryCode(territory.toString());
             terminal1.setPlantCode(plant.toString());
@@ -428,8 +574,10 @@ public class FactoryController {
             terminal1.setPower(power.toString());
             terminal1.setActivationCycle(period.toString());
             terminal1.setWorkingHour(workHour.toString());
+            terminal1.setInUsing(true);
         }catch (Exception e){
             e.printStackTrace();
+            return "get terminal info error";
         }
         Gson gson = new Gson();
         String retString = gson.toJson(terminal1);
@@ -437,35 +585,13 @@ public class FactoryController {
         return retString;
     }
 
-    @RequestMapping(value = "/saveTerminal")
-    @ResponseBody
-    public String saveTerminal(HttpServletRequest request,
-                               HttpServletResponse response,
-                               @ModelAttribute Terminal inputData,
-                               ModelMap model){
-        System.out.println(inputData);
-        inputData.setCreatedTime(new Date());
-        Factory factory = factoryService.getFactoryById(request.getSession().getAttribute("factoryId").toString());
-        inputData.setFactoryId(factory);
-        List<Terminal> terminals = terminalService.getScrollData().getResultList();
-        for(Terminal terminal : terminals){
-            if(inputData.getTerminalCode().equals(terminal.getTerminalCode()))
-            {
-                return "设备编号已存在，添加设备失败";
-            }
-        }
-        String retInfo = "";
-        JSONObject terminalJson = (JSONObject) JSONObject.toJSON(inputData);
-        logger.info("jsonarray:   "+terminalJson);
-        String centerUrl = serverUrl+loaduploadterminal;
+    private String sendToServer(JSONObject jsonObject, String url){
         Map<String, String> headParams = new HashMap<>();
         headParams.put("Content-type", "application/json; charset=utf-8");
         headParams.put("SessionId", HttpClientUtils.getSessionId());
-        retInfo = HttpClientUtils.getInstance().doPostWithJson(centerUrl, headParams, terminalJson);
-        logger.info(">>>>>>>retinfo is : " + retInfo);
-        terminalService.save(inputData);
-        return "add success!";
+        return HttpClientUtils.getInstance().doPostWithJson(url, headParams, jsonObject);
     }
+
 
     /**
      *新增数据
@@ -501,6 +627,11 @@ public class FactoryController {
         List<Terminal> terminals = terminalService.getScrollData().getResultList();
         for(Terminal terminal:terminals)
         {
+            if(!terminal.getInUsing())
+            {
+                logger.info(">>>>>>>>此设备已停用<<<<<<<");
+                return;
+            }
             final String rsPrefix = "7E380F"; //标志字符7E 帧格式38(发送) 帧长度0F
             String rsMidTerminalfix = terminal.getTerminalCode(); //终端ID
             final String rsPartitionSendCode = "00"; //分割发送码

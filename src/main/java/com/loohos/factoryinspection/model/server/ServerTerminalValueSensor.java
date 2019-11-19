@@ -12,6 +12,9 @@ public class ServerTerminalValueSensor {
     private double topTemp;
     private double midTemp;
     private double botTemp;
+    private int topAlarmLevel = 3;
+    private int midAlarmLevel = 3;
+    private int botAlarmLevel = 3;
     private String batteryState;
     private Terminal terminalId;
     private Date createdTime;
@@ -46,9 +49,37 @@ public class ServerTerminalValueSensor {
         return botTemp;
     }
 
-    public void setBotTemp(double botTemp) {
-        this.botTemp = botTemp;
+    public void setBotTemp(double botTemp) { this.botTemp = botTemp; }
+
+
+    @Column(nullable = false)
+    public int getTopAlarmLevel() {
+        return topAlarmLevel;
     }
+
+    public void setTopAlarmLevel(int topAlarmLevel) {
+        this.topAlarmLevel = topAlarmLevel;
+    }
+
+    @Column(nullable = false)
+    public int getMidAlarmLevel() {
+        return midAlarmLevel;
+    }
+
+    public void setMidAlarmLevel(int midAlarmLevel) {
+        this.midAlarmLevel = midAlarmLevel;
+    }
+
+    @Column(nullable = false)
+    public int getBotAlarmLevel() {
+        return botAlarmLevel;
+    }
+
+    public void setBotAlarmLevel(int botAlarmLevel) {
+        this.botAlarmLevel = botAlarmLevel;
+    }
+
+
     @Column(nullable = true)
     public String getBatteryState() {
         return batteryState;

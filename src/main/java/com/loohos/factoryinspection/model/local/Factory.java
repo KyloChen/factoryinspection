@@ -1,6 +1,8 @@
 package com.loohos.factoryinspection.model.local;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Factory {
@@ -12,7 +14,6 @@ public class Factory {
     private String factoryAlarmLevel;
     private String factoryAlarmColor;
 
-    @GeneratedValue(strategy=GenerationType.AUTO)
     @Id
     @Column(length = 40, nullable = false)
     public String getFactoryId() {

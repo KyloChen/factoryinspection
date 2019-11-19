@@ -18,10 +18,10 @@
 
     <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
     <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery.timers-1.2.js}"></script>
-    <script type="text/javascript" th:src="@{/static/scripts/bootstrap-table.min.js}"></script>
     <script type="text/javascript" th:src="@{/static/scripts/ezuikit/js/hls.js}"></script>
     <script type="text/javascript" th:src="@{/static/scripts/ezuikit/ezuikit.js}"></script>
     <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap-table.min.js}"></script>
 
     <script type="text/javascript">
 
@@ -37,9 +37,7 @@
                         element.style.display = "block"
                     }
                 });
-            })
-
-
+            });
         });
         var pathname = window.location.pathname;
         var projectName = pathname.substring(0,pathname.substr(1).indexOf('/') + 1);
@@ -50,6 +48,43 @@
                 window.location.href= projectName+"/factory/factorygraph?terminalCode=" + terminalCode;
         }
 
+        function editTerminal(that){
+            var terminalCode = $(that).attr('data-terminalId');
+            console.log(terminalCode);
+
+        }
+
+        function deleteTerminal(that){
+            var terminalId = $(that).attr('data-terminalId');
+            console.log(terminalId);
+            var truthBeTold = window.confirm("确认删除终端吗？");
+            var inputData = {};
+            inputData.terminalId = terminalId;
+            if (truthBeTold) {
+                var confirmTwice = window.confirm("删除后数据无法恢复，请问是否确定删除？");
+                if(confirmTwice){
+                    console.log(terminalId);
+                    $.ajax({
+                        url: "/factoryinspection/factory/deleteTerminal",
+                        method: "post",
+                        data: inputData,
+                        success: function (result) {
+                            alert("二次确认删除设备："+ result + "成功！");
+                            window.history.go(0);
+                        },
+                        error: function () {
+
+                        }
+                    });
+
+                }else {
+                    self.close();
+                }
+
+            }else{
+                self.close();
+            }
+        }
 
         var click = true;
         function showCameraContainer(){
@@ -68,10 +103,6 @@
             }
         }
 
-        function showAllTerminal() {
-
-        }
-
         var toggle = true;
         function toggleQuery() {
             $('.fa-search-plus').toggleClass('hidden');
@@ -88,6 +119,10 @@
         var obj = {};
         function terminalCode() {
             var terminalCode = document.getElementById("recipient-name").value;
+            if(isEmpty(terminalCode)){
+                alert("特征码不能为空");
+                return;
+            }
             var inputData = {};
             $('div.loading').show();
             inputData.terminalCode = terminalCode;
@@ -114,7 +149,7 @@
                 },
                 error : function(result) {
                     $('div.loading').hide();
-                    alert("发生错误，请稍后重试");
+                    alert("特征码已存在");
                 }
             });
         }
@@ -321,19 +356,11 @@
                     data: inputData,
                     success: function (result) {
                         alert("success 成功! "  + JSON.stringify(result));
-                        var opt = {
-                            url: "/factoryinspection/factory/getThresholdTable",
-                            silent: true
-                        };
-                        $("#table").bootstrapTable('refresh', opt);
+                        refreshTable();
                     },
                     error: function (result) {
                         alert("error" + JSON.stringify(result));
-                        var opt = {
-                            url: "/factoryinspection/factory/getThresholdTable",
-                            silent: true
-                        };
-                        $("#table").bootstrapTable('refresh', opt);
+                        refreshTable();
                     }
                 })
             } else {
@@ -347,7 +374,7 @@
         var modelAlarmLevel = document.getElementById("modelAlarmLevel").value;
         var modelMinValue = document.getElementById("modelMinValue").value;
         var modelMaxValue = document.getElementById("modelMaxValue").value;
-        if(isEmpty(modelAlarmLevel) && isEmpty(modelMinValue) && isEmpty(modelMaxValue)){
+        if(isEmpty(modelAlarmLevel) || isEmpty(modelMinValue) || isEmpty(modelMaxValue)){
             alert("请输入要设置的阈值！");
             return;
         }
@@ -362,21 +389,20 @@
             data: inputData,
             success: function (result) {
                 alert(JSON.stringify(result));
-                var opt = {
-                    url: "/factoryinspection/factory/getThresholdTable",
-                    silent: true
-                };
-                $("#table").bootstrapTable('refresh', opt);
+                refreshTable();
             },
             error: function (result) {
                 alert("error: " + JSON.stringify(result));
-                var opt = {
-                    url: "/factoryinspection/factory/getThresholdTable",
-                    silent: true
-                };
-                $("#table").bootstrapTable('refresh', opt);
+                refreshTable();
             }
         })
+    }
+    function refreshTable(){
+        var opt = {
+            url: "/factoryinspection/factory/getThresholdTable",
+            silent: true
+        };
+        $("#table").bootstrapTable('refresh', opt);
     }
     </script>
     <style type="text/css">
@@ -441,6 +467,11 @@
                 top: 15px;
                 right: -2px;
             }
+            .deleteBtn{
+                position: absolute;
+                top: 15px;
+                right: -5px;
+            }
             #queryTerminal label {
                 display: inline-flex !important;
             }
@@ -451,7 +482,7 @@
             #queryToggleBtn{
                 display: block;
                 position: absolute;
-                top: 0;
+                top: 36px;
                 right: 13px;
             }
         }
@@ -465,21 +496,20 @@
     </div>
     <!--<div id="clock" align="center" style="position: absolute; right: 20px; top: 10px;"></div>-->
 </div>
-<!--<div id="cameraHideBar">-->
-    <!--<button id="cameraOperate" class="btn btn-primary" onclick="showCameraContainer()">-->
-        <!--视频窗口-->
-    <!--</button>-->
-    <!--<div id="cameraContainer">-->
-        <!--<video id="myPlayer" class = "camera_player"-->
-               <!--autoplay="false"-->
-               <!--poster="/static/img/xiangmu.png" controls playsInline webkit-playsinline>-->
-            <!--<source src="http://hls01open.ys7.com/openlive/e4c7455d1d754c94add2c2aaabc53a3e.m3u8" type="application/x-mpegURL" />-->
-        <!--</video>-->
-    <!--</div>-->
-<!--</div>-->
+<div id="cameraHideBar">
+    <button id="cameraOperate" class="btn btn-primary" onclick="showCameraContainer()">
+        视频窗口
+    </button>
+    <div id="cameraContainer">
+        <video id="myPlayer" class = "camera_player"
+               autoplay="false"
+               th:poster="@{/img/xiangmu.png}"  controls playsInline webkit-playsinline>
+            <source src="http://hls01open.ys7.com/openlive/085906b09e274eba90cf22093fa93a6f.m3u8" type="application/x-mpegURL" />
+        </video>
+    </div>
+</div>
 <button id="addTerminal" class="btn btn-success" data-toggle="modal" data-target="#myModal">添加设备</button>
 <button id="setAlarmLevel" class="btn btn-primary" data-toggle="modal" data-target="#thresholdModel" onclick="getThresholdTable()">设备阈值</button>
-<button id="showAllTerminal" class="btn btn-info" onclick="showAllTerminal()">所有设备</button>
 <button id="backMap" class="btn btn-info" onclick="window.history.back()">返回地图</button>
 <span id="queryToggleBtn" onclick="toggleQuery()">
         <i class="fa fa-search-plus fa-fw fa-2x "></i>
@@ -532,7 +562,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="myModalLabel">添加终端设备</h4>
+                <h4 class="modal-title" id="myModalLabel">添加设备</h4>
             </div>
             <div class="modal-body">
                 <form class="form-horizontal">
@@ -588,9 +618,12 @@
     </div>
 </div>
     <ul id="mainmenu" class="mainmenu" style="z-index: 9997" >
-        <li class="mainmenuli" th:each="sensor,sensorStat:${sensors}">
-            <a class="editBtn">
-                <i class="fa fa-pencil-square-o fa-fw fa-1g "></i>
+        <li class="mainmenuli" style="text-align: center" th:each="sensor,sensorStat:${sensors}">
+            <a class="editBtn" style="display: inline" href="javascript:void(0)" th:attr="data-terminalId=${sensor.terminal.terminalId}" th:onclick="editTerminal(this)">
+                <i class="fa fa-pencil-square-o fa-fw fa-1g"></i>
+            </a>
+            <a class="deleteBtn" style="display: inline"  href="javascript:void(0)" th:attr="data-terminalId=${sensor.terminal.terminalId}" th:onclick="deleteTerminal(this)">
+                <i class="fa fa-close fa-fw fa-1g"></i>
             </a>
         <p id="sensor_position">
             <span>垮 <i th:text="${sensor.terminal.pitCode}" th:id="collapse+(${sensorStat.count})" class="queryTerminalCollapse" ></i></span>
@@ -598,9 +631,21 @@
             <span>窖 <i th:text="${sensor.terminal.cellarCode}" th:id="cellar+(${sensorStat.count})" class="queryTerminalCellar" ></i></span>
         </p>
         <a class="sensorValueTagA" href="javascript:void(0)" th:attr="data-terminalCode=${sensor.terminal.terminalCode}" th:onclick="jumpToOtherInterface(this)">
-           <p class="sensorValueTagP"><span style="display: inline-block;" th:text="'上层：'+${sensor.topTemp}"></span></p>
-            <p class="sensorValueTagP"><span style="display: inline-block;" th:text="'中层：'+${sensor.midTemp}"></span></p>
-            <p class="sensorValueTagP"><span style="display: inline-block;" th:text="'底层：'+${sensor.botTemp}"></span></p>
+           <p class="sensorValueTagP" th:switch="${sensor.topAlarmLevel}">
+               <span th:case="1" style="display: inline-block;color:forestgreen;" th:text="'上层：'+${sensor.topTemp}" ></span>
+               <span th:case="2" style="display: inline-block;color:darkorange;" th:text="'上层：'+${sensor.topTemp}" ></span>
+               <span th:case="3" style="display: inline-block;color:red;" th:text="'上层：'+${sensor.topTemp}" ></span>
+           </p>
+            <p class="sensorValueTagP" th:switch="${sensor.midAlarmLevel}">
+                <span th:case="1" style="display: inline-block;color:forestgreen;" th:text="'中层：'+${sensor.midTemp}" ></span>
+                <span th:case="2" style="display: inline-block;color:darkorange;" th:text="'中层：'+${sensor.midTemp}" ></span>
+                <span th:case="3" style="display: inline-block;color:red;" th:text="'中层：'+${sensor.midTemp}" ></span>
+            </p>
+            <p class="sensorValueTagP" th:switch="${sensor.botAlarmLevel}">
+                <span th:case="1" style="display: inline-block;color:forestgreen;" th:text="'底层：'+${sensor.botTemp}" ></span>
+                <span th:case="2" style="display: inline-block;color:darkorange;" th:text="'底层：'+${sensor.botTemp}" ></span>
+                <span th:case="3" style="display: inline-block;color:red;" th:text="'底层：'+${sensor.botTemp}" ></span>
+            </p>
             <div th:switch="${sensor.batteryState}">
                 <span th:case="'03'" style="color:forestgreen; background: whitesmoke"> <i class="fa fa-battery-4 fa-fw fa-1g" ></i>  电量全满</span>
                 <span th:case="'02'" style="color:forestgreen; background: whitesmoke"> <i class="fa fa-battery-3 fa-fw fa-1g" ></i>  电池余量70%</span>

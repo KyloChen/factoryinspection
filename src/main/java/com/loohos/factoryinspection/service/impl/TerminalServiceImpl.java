@@ -17,7 +17,7 @@ public class TerminalServiceImpl extends DaoSupport<Terminal> implements Termina
 
     @Override
     public List<Terminal> getTerminalsByFactory(Factory factoryId) {
-        Query query = em.createQuery("select o from Terminal o where o.factoryId = ?1");
+        Query query = em.createQuery("select o from Terminal o where o.factoryId = ?1 and o.inUsing = true");
         query.setParameter(1, factoryId);
         try{
             List<Terminal> terminals = query.getResultList();
@@ -35,7 +35,7 @@ public class TerminalServiceImpl extends DaoSupport<Terminal> implements Termina
 
     @Override
     public Terminal getIdByCode(String terminalCode) {
-        Query query = em.createQuery("select o from Terminal o where o.terminalCode = ?1");
+        Query query = em.createQuery("select o from Terminal o where o.terminalCode = ?1 and o.inUsing = true");
         query.setParameter(1, terminalCode);
         query.setMaxResults(1);
         try {
@@ -56,5 +56,16 @@ public class TerminalServiceImpl extends DaoSupport<Terminal> implements Termina
         }
     }
 
+    @Override
+    public Terminal getTerminalById(String terminalId) {
+        Query query = em.createQuery("select o from Terminal o where o.terminalId = ?1");
+        query.setParameter(1, terminalId);
+        query.setMaxResults(1);
+        try {
+            return (Terminal) query.getSingleResult();
+        }catch (Exception e){
+            return null;
+        }
+    }
 
 }

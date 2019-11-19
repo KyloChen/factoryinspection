@@ -22,4 +22,11 @@ public interface ServerTerminalValueSensorService extends DAO<ServerTerminalValu
 
     ServerTerminalValueSensor getLatestSensorByTerminalId(Terminal terminalId);
 
+    String getBatteryStateByTerminal(Terminal terminal);
+
+    int getLatestTopAlarmLevelByTerminal(Terminal terminal);
+
+    int getLatestMidAlarmLevelByTerminal(Terminal terminal);
+
+    int getLatestBotAlarmLevelByTerminal(Terminal terminal);
 }

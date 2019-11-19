@@ -131,4 +131,38 @@ public class TerminalValueSensorServiceImpl extends DaoSupport<TerminalValueSens
             return null;
         }
     }
+
+    @Override
+    public int getLatestTopAlarmLevelByTerminal(Terminal terminalId) {
+        Query query = em.createQuery("select o.topAlarmLevel from TerminalValueSensor o where o.terminalId = ?1 order by o.createdTime desc");
+        query.setParameter(1, terminalId);
+        query.setMaxResults(1);
+        try {
+            return (int) query.getSingleResult();
+        }catch (Exception e){
+            return 0;
+        }
+    }
+    @Override
+    public int getLatestMidAlarmLevelByTerminal(Terminal terminalId) {
+        Query query = em.createQuery("select o.midAlarmLevel from TerminalValueSensor o where o.terminalId = ?1 order by o.createdTime desc");
+        query.setParameter(1, terminalId);
+        query.setMaxResults(1);
+        try {
+            return (int) query.getSingleResult();
+        }catch (Exception e){
+            return 0;
+        }
+    }
+    @Override
+    public int getLatestBotAlarmLevelByTerminal(Terminal terminalId) {
+        Query query = em.createQuery("select o.botAlarmLevel from TerminalValueSensor o where o.terminalId = ?1 order by o.createdTime desc");
+        query.setParameter(1, terminalId);
+        query.setMaxResults(1);
+        try {
+            return (int) query.getSingleResult();
+        }catch (Exception e){
+            return 0;
+        }
+    }
 }

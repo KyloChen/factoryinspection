@@ -1,7 +1,5 @@
 package com.loohos.factoryinspection.model.formbean;
 
-import com.loohos.factoryinspection.model.config.ConfigAlarmLevel;
-import com.loohos.factoryinspection.model.formbean.BaseFormBean;
 import com.loohos.factoryinspection.model.local.Terminal;
 
 public class TerminalGroup extends BaseFormBean {
@@ -9,10 +7,10 @@ public class TerminalGroup extends BaseFormBean {
     private double topTemp;
     private double midTemp;
     private double botTemp;
+    private int topAlarmLevel;
+    private int midAlarmLevel;
+    private int botAlarmLevel;
     private String batteryState;
-    private ConfigAlarmLevel topAlarmLevel;
-    private ConfigAlarmLevel midAlarmLevel;
-    private ConfigAlarmLevel botAlarmLevel;
 
     public Terminal getTerminal() {
         return terminal;
@@ -46,6 +44,30 @@ public class TerminalGroup extends BaseFormBean {
         this.botTemp = botTemp;
     }
 
+    public int getTopAlarmLevel() {
+        return topAlarmLevel;
+    }
+
+    public void setTopAlarmLevel(int topAlarmLevel) {
+        this.topAlarmLevel = topAlarmLevel;
+    }
+
+    public int getMidAlarmLevel() {
+        return midAlarmLevel;
+    }
+
+    public void setMidAlarmLevel(int midAlarmLevel) {
+        this.midAlarmLevel = midAlarmLevel;
+    }
+
+    public int getBotAlarmLevel() {
+        return botAlarmLevel;
+    }
+
+    public void setBotAlarmLevel(int botAlarmLevel) {
+        this.botAlarmLevel = botAlarmLevel;
+    }
+
     public String getBatteryState() {
         return batteryState;
     }
@@ -54,27 +76,4 @@ public class TerminalGroup extends BaseFormBean {
         this.batteryState = batteryState;
     }
 
-    public ConfigAlarmLevel getTopAlarmLevel() {
-        return topAlarmLevel;
-    }
-
-    public void setTopAlarmLevel(ConfigAlarmLevel topAlarmLevel) {
-        this.topAlarmLevel = topAlarmLevel;
-    }
-
-    public ConfigAlarmLevel getMidAlarmLevel() {
-        return midAlarmLevel;
-    }
-
-    public void setMidAlarmLevel(ConfigAlarmLevel midAlarmLevel) {
-        this.midAlarmLevel = midAlarmLevel;
-    }
-
-    public ConfigAlarmLevel getBotAlarmLevel() {
-        return botAlarmLevel;
-    }
-
-    public void setBotAlarmLevel(ConfigAlarmLevel botAlarmLevel) {
-        this.botAlarmLevel = botAlarmLevel;
-    }
 }

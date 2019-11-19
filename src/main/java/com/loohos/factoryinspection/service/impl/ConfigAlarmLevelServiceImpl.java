@@ -13,14 +13,14 @@ import javax.persistence.Query;
 @Transactional
 public class ConfigAlarmLevelServiceImpl extends DaoSupport<ConfigAlarmLevel> implements ConfigAlarmLevelService {
     @Override
-    public ConfigAlarmLevel getLevelByTemp(double temp) {
-        Query query = em.createQuery("select o from ConfigAlarmLevel o where ?1 between o.minValue and o.maxValue");
+    public int getLevelByTemp(double temp) {
+        Query query = em.createQuery("select o.alarmLevel from ConfigAlarmLevel o where ?1 between o.minValue and o.maxValue");
         query.setMaxResults(1);
         query.setParameter(1, temp);
         try {
-            return (ConfigAlarmLevel) query.getSingleResult();
+            return (int) query.getSingleResult();
         }catch (Exception e){
-            return null;
+            return 3;
         }
     }
 
@@ -29,6 +29,30 @@ public class ConfigAlarmLevelServiceImpl extends DaoSupport<ConfigAlarmLevel> im
         Query query = em.createQuery("select o from ConfigAlarmLevel o where o.alarmLevel = ?1");
         query.setParameter(1, alarmlevel);
         query.setMaxResults(1);
+        try {
+            return (ConfigAlarmLevel) query.getSingleResult();
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+    @Override
+    public int getIsOrNotUnderRange(double value) {
+        Query query = em.createQuery("select o.alarmLevel from ConfigAlarmLevel o where ?1 between o.minValue and o.maxValue");
+        query.setMaxResults(1);
+        query.setParameter(1, value);
+        try {
+            return (int)query.getSingleResult();
+        }catch (Exception e){
+            return 0;
+        }
+    }
+
+    @Override
+    public ConfigAlarmLevel getLevelById(String alarmId) {
+        Query query = em.createQuery("select o.alarmLevel from ConfigAlarmLevel o where o.alarmId = ?1");
+        query.setMaxResults(1);
+        query.setParameter(1, alarmId);
         try {
             return (ConfigAlarmLevel) query.getSingleResult();
         }catch (Exception e){

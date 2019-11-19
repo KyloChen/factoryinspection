@@ -311,6 +311,7 @@
         $('#dateTimeSelecter').css("display","block");
         $('#dateTimeQueryBtn').css("display","block");
         myChart.clear();
+        myChart.hideLoading();
         myChart.setOption(historyOption);
     }
 
@@ -318,6 +319,7 @@
         $('#dateTimeSelecter').css("display","none");
         $('#dateTimeQueryBtn').css("display","none");
         myChart.clear();
+        myChart.hideLoading();
         myChart.setOption(dailyOption);
     }
 
@@ -371,7 +373,7 @@
         $.ajax({
             type: "POST",//方法类型
             dataType: "json",//预期服务器返回的数据类型
-            url: "/factoryinspection/factory/queryByDateRange" ,//url
+            url: "/factoryinspection/serverfactory/queryByDateRange" ,//url
             data: inputData,
             success: function (result) {
                 console.log(result + "aaa");
@@ -455,6 +457,7 @@
                     ]
                 };
                 myChart.clear();
+                myChart.hideLoading();
                 myChart.setOption(historyQueryOption);
             },
             error : function(result) {
