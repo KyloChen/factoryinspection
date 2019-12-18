@@ -8,11 +8,10 @@ import com.loohos.factoryinspection.model.config.ConfigAlarmLevel;
 import com.loohos.factoryinspection.model.formbean.QueryDateRange;
 import com.loohos.factoryinspection.model.formbean.QueryDateRangeResult;
 import com.loohos.factoryinspection.model.formbean.TerminalGroup;
-import com.loohos.factoryinspection.model.local.Factory;
-import com.loohos.factoryinspection.model.local.Terminal;
-import com.loohos.factoryinspection.model.local.TerminalValueSensor;
+import com.loohos.factoryinspection.model.local.*;
 import com.loohos.factoryinspection.model.server.ServerTerminalValueSensor;
 import com.loohos.factoryinspection.service.*;
+import com.loohos.factoryinspection.utils.HttpClientUtils;
 import com.loohos.factoryinspection.utils.SerialCommThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,6 +189,71 @@ public class ServerFactoryController {
             logger.info("gotta factories");
             return "factory/factorymap";
         }
+    }
+
+    /**
+     *厂房内部 new TODO 集成
+     * */
+    @RequestMapping(value = "serverfactorycontainer")
+    public String serverfactorycontainer(HttpServletRequest request,
+                                         HttpServletResponse response,
+                                         @RequestParam String factoryId,
+                                         ModelMap model){
+        //查厂区管辖的所有终端，组装终端与其最新一条数据
+        Factory factory = factoryService.getFactoryById(factoryId);
+        request.getSession().setAttribute("factoryId", factoryId);
+        List<Terminal> terminals = terminalService.getTerminalsByFactory(factory);
+        System.out.println(terminals);
+        List<TerminalGroup> temps = new ArrayList<>();
+        if(terminals == null){
+            model.put("factory", factory);
+            return "factory/serverfactorycontainer";
+        }
+        for (Terminal terminal : terminals){
+            logger.info("server temp added");
+            double topTemp = serverTerminalValueSensorService.getLatestTopTempByTerminal(terminal);
+            double midTemp = serverTerminalValueSensorService.getLatestMidTempByTerminal(terminal);
+            double botTemp = serverTerminalValueSensorService.getLatestBotTempByTerminal(terminal);
+            String batteryState = serverTerminalValueSensorService.getBatteryStateByTerminal(terminal);
+            int topAlarmLevel = serverTerminalValueSensorService.getLatestTopAlarmLevelByTerminal(terminal);
+            int midAlarmLevel = serverTerminalValueSensorService.getLatestMidAlarmLevelByTerminal(terminal);
+            int botAlarmLevel = serverTerminalValueSensorService.getLatestBotAlarmLevelByTerminal(terminal);
+            TerminalGroup temp = new TerminalGroup();
+
+//            Cellar cellar1 = new Cellar();
+//            cellar1.setCellarId(HttpClientUtils.getUUID());
+//            cellar1.setCellarCode(Integer.parseInt(terminal.getCellarCode()));
+//            Row row1 = new Row();
+//            row1.setRowId(HttpClientUtils.getUUID());
+//            row1.setRowCode(Integer.parseInt(terminal.getRowCode()));
+//            Pit pit1 = new Pit();
+//            pit1.setPitId(HttpClientUtils.getUUID());
+//            pit1.setPitCode(Integer.parseInt(terminal.getPitCode()));
+//            Team team1 = new Team();
+//            team1.setTeamId(HttpClientUtils.getUUID());
+//            team1.setTeamCode(Integer.parseInt(terminal.getTeamCode()));
+//            Territory territory1 = new Territory();
+//            territory1.setTerritoryId(HttpClientUtils.getUUID());
+//            territory1.setTerritoryCode(Integer.parseInt(terminal.getTerritoryCode()));
+//            Plant plant1 = new Plant();
+//            plant1.setPlantId(HttpClientUtils.getUUID());
+//            plant1.setPlantCode(Integer.parseInt(terminal.getPlantCode()));
+//            plant1.
+//            temp.setPlant(plant1);
+            temp.setTerminal(terminal);
+            temp.setTopTemp(topTemp);
+            temp.setMidTemp(midTemp);
+            temp.setTopAlarmLevel(topAlarmLevel);
+            temp.setMidAlarmLevel(midAlarmLevel);
+            temp.setBotAlarmLevel(botAlarmLevel);
+            temp.setBatteryState(batteryState);
+            temp.setBotTemp(botTemp);
+            temps.add(temp);
+        }
+        model.put("factory", factory);
+        model.put("sensors",temps);
+        System.out.println(temps);
+        return "factory/serverfactorycontainer";
     }
 
     /**

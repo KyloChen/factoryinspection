@@ -4,17 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.loohos.factoryinspection.model.config.ConfigAlarmLevel;
-import com.loohos.factoryinspection.model.local.Factory;
+import com.loohos.factoryinspection.model.local.*;
 import com.loohos.factoryinspection.model.formbean.QueryDateRange;
 import com.loohos.factoryinspection.model.formbean.QueryDateRangeResult;
-import com.loohos.factoryinspection.model.local.LocalSite;
-import com.loohos.factoryinspection.model.local.Terminal;
 import com.loohos.factoryinspection.model.formbean.TerminalGroup;
-import com.loohos.factoryinspection.model.local.TerminalValueSensor;
-import com.loohos.factoryinspection.service.ConfigAlarmLevelService;
-import com.loohos.factoryinspection.service.FactoryService;
-import com.loohos.factoryinspection.service.TerminalService;
-import com.loohos.factoryinspection.service.TerminalValueSensorService;
+import com.loohos.factoryinspection.service.*;
 import com.loohos.factoryinspection.utils.HexUtils;
 import com.loohos.factoryinspection.utils.HttpClientUtils;
 import com.loohos.factoryinspection.utils.SerialCommThread;
@@ -55,6 +49,15 @@ public class FactoryController {
     @Resource(name = "terminalServiceImpl") private TerminalService terminalService;
     @Resource(name = "terminalValueSensorServiceImpl") private TerminalValueSensorService terminalValueSensorService;
     @Resource(name = "configAlarmLevelServiceImpl") private ConfigAlarmLevelService configAlarmLevelService;
+    @Resource(name = "plantServiceImpl") private PlantService plantService;
+    @Resource(name = "territoryServiceImpl") private TerritoryService territoryService;
+    @Resource(name = "teamServiceImpl") private TeamService teamService;
+    @Resource(name = "pitServiceImpl") private PitService pitService;
+    @Resource(name = "rowServiceImpl") private RowService rowService;
+    @Resource(name = "cellarServiceImpl") private CellarService cellarService;
+    @Resource(name = "sensorNodeServiceImpl") private SensorNodeService sensorNodeService;
+    @Resource(name = "sensorServiceImpl") private SensorService sensorService;
+
     /**
      *厂房地图
      * */
@@ -71,6 +74,50 @@ public class FactoryController {
             return "factory/factorymap";
         }
     }
+//    /**
+//     *厂房内部
+//     * */
+//    @RequestMapping(value = "/factoryinside")
+//    public String factoryinside(HttpServletRequest request,
+//                                HttpServletResponse response,
+//                                @RequestParam String factoryId,
+//                                ModelMap model){
+//        //查厂区管辖的所有终端，组装终端与其最新一条数据
+//        Factory factory = factoryService.getFactoryById(factoryId);
+//        request.getSession().setAttribute("factoryId", factoryId);
+//        //通过factory取terminal，terminal需要inUsing为true的
+//        List<Terminal> terminals = terminalService.getTerminalsByFactory(factory);
+//        System.out.println(terminals);
+//        List<TerminalGroup> temps = new ArrayList<>();
+//        if(terminals == null){
+//            model.put("factory", factory);
+//            return "factory/factoryinside";
+//        }
+//        for (Terminal terminal : terminals){
+//            double topTemp = terminalValueSensorService.getLatestTopTempByTerminal(terminal);
+//            double midTemp = terminalValueSensorService.getLatestMidTempByTerminal(terminal);
+//            double botTemp = terminalValueSensorService.getLatestBotTempByTerminal(terminal);
+//            String batteryState = terminalValueSensorService.getBatteryStateByTerminal(terminal);
+//            int topAlarmLevel = terminalValueSensorService.getLatestTopAlarmLevelByTerminal(terminal);
+//            int midAlarmLevel = terminalValueSensorService.getLatestMidAlarmLevelByTerminal(terminal);
+//            int botAlarmLevel = terminalValueSensorService.getLatestBotAlarmLevelByTerminal(terminal);
+//            TerminalGroup temp = new TerminalGroup();
+//            temp.setTerminal(terminal);
+//            temp.setTopTemp(topTemp);
+//            temp.setTopAlarmLevel(topAlarmLevel);
+//            temp.setMidAlarmLevel(midAlarmLevel);
+//            temp.setBotAlarmLevel(botAlarmLevel);
+//            temp.setMidTemp(midTemp);
+//            temp.setBotTemp(botTemp);
+//            temp.setBatteryState(batteryState);
+//            temps.add(temp);
+//        }
+//        model.put("factory", factory);
+//        model.put("sensors",temps);
+//        System.out.println(temps);
+//        return "factory/factoryinside";
+//    }
+
     /**
      *厂房内部
      * */
@@ -274,6 +321,35 @@ public class FactoryController {
         }
     }
 
+//    /**
+//     *添加终端信息
+//     * */
+//    @RequestMapping(value = "/addTerminal")
+//    @ResponseBody
+//    public String addTerminal(@ModelAttribute Terminal inputData){
+//        List<Terminal> terminals = terminalService.getScrollData().getResultList();
+//        for(Terminal terminal: terminals){
+//            if(terminal.getTerminalCode().equals(inputData.getTerminalCode()))
+//            {
+//                if(terminal.getInUsing()){
+//                    return null;
+//                }
+//            }
+//        }
+//
+//        if(commThread.isAlive()){
+//            return getTerminalLoc(inputData);
+//        }else{
+//            boolean started = commThread.startCommPort("COM3", 9600, 8, 1, 0);
+//            if(started){
+//                commThread.start();
+//                return getTerminalLoc(inputData);
+//            }else{
+//                return getTerminalLoc(inputData);
+//            }
+//        }
+//    }
+
     /**
      *添加终端信息
      * */
@@ -289,7 +365,6 @@ public class FactoryController {
                 }
             }
         }
-
         if(commThread.isAlive()){
             return getTerminalLoc(inputData);
         }else{
@@ -302,7 +377,6 @@ public class FactoryController {
             }
         }
     }
-
 
     /**
      * 保存终端
@@ -560,6 +634,12 @@ public class FactoryController {
             Long power = Long.parseLong(HexUtils.bytesToHexString(workRateId),16);
             Long period = Long.parseLong(HexUtils.bytesToHexString(periodId),16);
             Long workHour = Long.parseLong(HexUtils.bytesToHexString(workTimeId),16);
+            double topTemp1 = (Long.parseLong(HexUtils.bytesToHexString(topTemp), 16))*1.0/10;
+            logger.error("The topTemp is [{}]", topTemp1);
+            double midTemp1 = (Long.parseLong(HexUtils.bytesToHexString(midTemp),16))*1.0/10;
+            logger.error("The mideTemp is [{}]", midTemp1);
+            double botTemp1 = (Long.parseLong(HexUtils.bytesToHexString(botTemp),16))*1.0/10;
+            logger.error("The botTemp is [{}]", botTemp1);
             String batteryState1 = HexUtils.bytesToHexString(batteryState);
 //            terminal1.setTerminalId(HttpClientUtils.getUUID());
             terminal1.setTerminalCode(terminalId1);
@@ -569,6 +649,7 @@ public class FactoryController {
             terminal1.setRowCode(row.toString());
             terminal1.setPitCode(pit.toString());
             terminal1.setCellarCode(cellar.toString());
+
             terminal1.setBatteryState(batteryState1);
             terminal1.setFrenquency(frn.toString());
             terminal1.setPower(power.toString());

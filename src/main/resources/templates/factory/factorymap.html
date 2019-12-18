@@ -108,7 +108,8 @@
                 if(factoryId == null){
                     return;
                 }
-                location.href =  projectName+"/serverfactory/serverfactoryinside?factoryId=" + factoryId;
+                // location.href =  projectName+"/serverfactory/serverfactoryinside?factoryId=" + factoryId;
+                location.href =  projectName+"/serverfactory/serverfactorycontainer?factoryId=" + factoryId;
             }else if(machineType == "local"){
                 if(factoryId == null){
                     return;
@@ -136,19 +137,31 @@
 //<img th:src="@{/img/temp.png}"/> th:src="@{/static/img/Marker-blue.png}"
 -->
 <input id="machineType" style="display: none;" type="text" th:value="#{com.loohos.machineType}">
-<canvas id="mapCanvas">
-    <!--<img id="tag" src="../static/img/Marker-blue.png" alt="blue">-->
-</canvas>
-    <div id="factoryMapContainer" class="col-xs-12 col-lg-12 col-md-12" th:each="factory:${factories}" >
-        <img  class="factory" th:factoryId="${factory.factoryId}"
-            th:alarmColor="${factory.factoryAlarmColor}"
-              th:clientX = "${factory.factoryClientX}"
-              th:clientY = "${factory.factoryClientY}"
-             th:alt="${factory.factoryName}"
-             th:alarmLevel="${factory.factoryAlarmLevel}"
-              style="display: block;position: absolute;cursor: pointer"
-        />
-    </div>
+<!-- 之前版本的主页地图 -->
+<!--<canvas id="mapCanvas">-->
+    <!--&lt;!&ndash;<img id="tag" src="../static/img/Marker-blue.png" alt="blue">&ndash;&gt;-->
+<!--</canvas>-->
+    <!--<div id="factoryMapContainer" class="col-xs-12 col-lg-12 col-md-12" th:each="factory:${factories}" >-->
+        <!--<img  class="factory" th:factoryId="${factory.factoryId}"-->
+            <!--th:alarmColor="${factory.factoryAlarmColor}"-->
+              <!--th:clientX = "${factory.factoryClientX}"-->
+              <!--th:clientY = "${factory.factoryClientY}"-->
+             <!--th:alt="${factory.factoryName}"-->
+             <!--th:alarmLevel="${factory.factoryAlarmLevel}"-->
+              <!--style="display: block;position: absolute;cursor: pointer"-->
+        <!--/>-->
+    <!--</div>-->
+
+<div class="col-xs-6 col-lg-4 col-md-4" style="width:30%;height: 30%;display: inline-block;" th:each="factory:${factories}">
+    <span style="padding: 20px; text-align: center" th:text="${factory.factoryName}"
+          th:factoryId="${factory.factoryId}"
+          th:alarmColor="${factory.factoryAlarmColor}"
+          th:clientX = "${factory.factoryClientX}"
+          th:clientY = "${factory.factoryClientY}"
+          th:alt="${factory.factoryName}"
+          th:alarmLevel="${factory.factoryAlarmLevel}"
+    ></span>
+</div>
 <!-- 拖拽添加点 -->
 <!--<script>-->
     <!--var dragItem = document.querySelector("#tag");-->

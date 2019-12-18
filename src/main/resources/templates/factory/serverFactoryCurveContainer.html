@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="智能厂房管理系统">
+    <meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinspection.css}">
+    <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/static/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css}">
+
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/incubator-echarts-4.5.0/dist/echarts.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery.timers-1.2.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/bootstrap-datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/factoryinspection/factoryinspection.js}"></script>
+
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/js/hls.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/ezuikit.js}"></script>
+
+</head>
+<body style="background: black">
+<div id="mainDiv" style="">
+    <div id="dateTimeSelector" class="form-inline" style="display: none">
+        <label class="control-label">开始日期:</label>
+        <div class="input-group date form_date mr10">
+            <input class="form-control" readonly="readonly" type="text" value="" id="startDate">
+        </div>
+        <label class="control-label">结束日期:</label>
+        <div class="input-group date form_date">
+            <input class="form-control" readonly="readonly" type="text" value="" id="endDate">
+        </div>
+        <button class="btn btn-group-xs btn-primary" id="dateRangeQueryBtn" onclick="queryByDateRange()">查询</button>
+        <button class="btn btn-group-xs btn-primary" id="dateRangeResetBtn" onclick="resetTimeRange()">重置</button>
+    </div>
+    <div style="width: 100%; height: auto; text-align: center">
+        <div id="main" style="width: 600px;height:400px;"></div>
+    </div>
+    <input style="display: none;"  type="text" th:value="${sensorId}" id="sensorId">
+</div>
+<script type="text/javascript" th:inline="javascript">
+    /*<![CDATA[*/
+    var myChart = echarts.init(document.getElementById('main'),'dark');
+    var dates = JSON.parse([[${createdTimes}]]);
+    if(dates == null){
+        alert("今日数据未录入，请稍后重试")
+    }
+    var topTemps = JSON.parse([[${serverTopTemps}]]);
+    var midTemps = JSON.parse([[${serverMidTemps}]]);
+    var botTemps = JSON.parse([[${serverBotTemps}]]);
+    // 指定图表的配置项和数据
+
+    var dailyOption = {
+
+        noDataLoadingOption: {
+            text: '暂无数据',
+            effect: 'bubble',
+            effectOption: {
+                effect: {
+                    n: 0
+                }
+            }
+        },
+        title: {
+            text: '窖藏温度',
+            subtext:''
+        }, //图表左上方简介
+        legend: {
+            data:['上层温度值', '中层温度值', '底层温度值']
+        }, //显示曲线简介
+
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross'
+            }
+        },
+        toolbox: {
+            show: true,
+            feature: {
+                dataZoom: {
+                    show: true,
+                    yAxisIndex: 'none'
+                },
+                dataView: {
+                    show: true,
+                    readOnly: false},
+                magicType: {type: ['line', 'bar']},
+                restore: {show: true},
+                saveAsImage: {show: true}
+            }
+        },
+        xAxis:  {
+            name: "时间(时：分)",
+            type: 'category',
+            boundaryGap: false,
+            data: dates,
+            axisLabel: {
+                //处理时间格式
+                formatter: function (value, index) {
+                    // 格式化成月/日，只在第一个刻度显示年份
+                    var date = new Date(value);
+                    var texts = [date.getHours(), date.getMinutes()];
+                    if (index === 0) {
+                        console.log(texts.unshift((date.getMonth() + 1), date.getDate()));
+                    }
+                    return texts.join(':');
+                }
+            }
+
+        },
+        yAxis: {
+            name: "温度值",
+            type: 'value',
+            axisLabel: {
+                formatter:'{value} °C'
+            },
+            axisPointer: {
+                snap: true
+            }
+        },
+
+        series: [
+            {
+                name:'上层温度值',
+                type:'line',
+                smooth: true,
+                data: topTemps
+            },
+            {
+                name:'中层温度值',
+                type:'line',
+                smooth: true,
+                connectNulls: true ,//连接数据为null的前后点
+                data: midTemps
+            },
+            {
+                name:'底层温度值',
+                type:'line',
+                smooth: true,
+                data: botTemps
+            }
+        ]
+
+    };
+    // 使用刚指定的配置项和数据显示图表。
+    myChart.setOption(dailyOption);
+</script>
+<script type="text/javascript" th:src="@{/static/scripts/purple-passion.js}"></script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="智能厂房管理系统">
+
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinspection.css}">
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinside.css}">
+    <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap-table.min.css}">
+
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery.timers-1.2.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/js/hls.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/ezuikit.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap-table.min.js}"></script>
+    <script>
+
+        function showSensorCurve(that){
+            var sensorId = $(that).attr('data-sensorId');
+            var inputData = {};
+            inputData.sensorId = sensorId;
+            $.ajax({
+                url: "/factoryinspection/newFactory/showSensorCurve",
+                method: "post",
+                data: inputData,
+                success: function (result) {
+                    var divshow = $("#curve-container");
+                    divshow.text("");// 清空数据
+                    divshow.append(result);
+                    // $("#tableInfoContainer").html(result);
+                },
+                error: function () {
+                    alert("今日无数据录入。");
+                }
+            });
+        }
+
+        function showHisSensorCurve(that){
+            var sensorId = $(that).attr('data-sensorId');
+            var inputData = {};
+            inputData.sensorId = sensorId;
+            $.ajax({
+                url: "/factoryinspection/newFactory/showHisSensorCurve",
+                method: "post",
+                data: inputData,
+                success: function (result) {
+                    var divshow = $("#curve-container");
+                    divshow.text("");// 清空数据
+                    divshow.append(result);
+                    // $("#tableInfoContainer").html(result);
+                },
+                error: function () {
+                    alert("无历史数据。");
+                }
+            });
+        }
+    </script>
+
+    <style>
+        .main-menu{
+            position: relative;
+        }
+        .main-menu-li{
+            text-align: center;
+            position: relative;
+            top: 30px;
+        }
+        .editBtn{
+            display: inline
+        }
+        .deleteBtn{
+            display: inline
+        }
+        .sensorValueTagP{
+            margin-top:-5px !important;
+        }
+
+        /* 模态框样式 */
+        .loading {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            background-color: black;
+            opacity: 0.4;
+            z-index: 9999;
+        }
+
+        /* 动图样式 */
+        .loading .gif {
+            height: 32px;
+            width: 32px;
+            background: url(../static/img/loading.gif);
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            margin-left: -16px;
+            margin-top: -16px;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+<div class="cellar-part" style="width: 100%;height: 30%;">
+<ul id="main-menu" class="main-menu">
+    <li class="main-menu-li">
+        <!--<a class="editBtn" href="javascript:void(0)" th:attr="data-terminalId=${sensor.sensorId}" th:onclick="editTerminal(this)">-->
+            <!--<i class="fa fa-pencil-square-o fa-fw fa-1g"></i>-->
+        <!--</a>-->
+        <!--<a class="deleteBtn" href="javascript:void(0)" th:attr="data-terminalId=${sensor.sensorId}" th:onclick="deleteTerminal(this)">-->
+            <!--<i class="fa fa-close fa-fw fa-1g"></i>-->
+        <!--</a>-->
+        <p >
+            <span>责任区 <i th:text="${sensor.cellar.row.pit.team.territory.territoryCode}"></i></span>
+            <span>班组 <i th:text="${sensor.cellar.row.pit.team.teamCode}"></i></span>
+            <span>垮 <i th:text="${sensor.cellar.row.pit.pitCode}"></i></span>
+            <span>排 <i th:text="${sensor.cellar.row.rowCode}"></i></span>
+        </p>
+        <p id="sensor_position">
+            <span>窖 <i th:text="${sensor.cellar.cellarCode}"></i></span>
+            <span>特征码 <i th:text="${sensor.sensorCode}"></i></span>
+        </p>
+        <a class="sensorValueTagA" href="javascript:void(0)">
+            <!--<span style="display: inline-block;color:forestgreen;" th:text="'上层：'+${topNode.sensorValue}" ></span>-->
+            <p class="sensorValueTagP" th:switch="${topNode.alarmLevel}">
+                <span th:case="1" style="display: inline-block;color:forestgreen;" th:text="'上层：'+${topNode.sensorValue}" ></span>
+                <span th:case="2" style="display: inline-block;color:darkorange;" th:text="'上层：'+${topNode.sensorValue}" ></span>
+                <span th:case="3" style="display: inline-block;color:red;" th:text="'上层：'+${topNode.sensorValue}" ></span>
+                <span th:case="4" style="display: inline-block;color:red;" th:text="'设备异常'" ></span>
+            </p>
+            <p class="sensorValueTagP" th:switch="${midNode.alarmLevel}">
+                <span th:case="1" style="display: inline-block;color:forestgreen;" th:text="'中层：'+${midNode.sensorValue}" ></span>
+                <span th:case="2" style="display: inline-block;color:darkorange;" th:text="'中层：'+${midNode.sensorValue}" ></span>
+                <span th:case="3" style="display: inline-block;color:red;" th:text="'中层：'+${midNode.sensorValue}" ></span>
+                <span th:case="4" style="display: inline-block;color:red;" th:text="'设备异常'" ></span>
+            </p>
+            <p class="sensorValueTagP" th:switch="${botNode.alarmLevel}">
+                <span th:case="1" style="display: inline-block;color:forestgreen;" th:text="'底层：'+${botNode.sensorValue}" ></span>
+                <span th:case="2" style="display: inline-block;color:darkorange;" th:text="'底层：'+${botNode.sensorValue}" ></span>
+                <span th:case="3" style="display: inline-block;color:red;" th:text="'底层：'+${botNode.sensorValue}" ></span>
+                <span th:case="4" style="display: inline-block;color:red;" th:text="'设备异常'" ></span>
+            </p>
+            <div th:switch="${sensor.batteryState}">
+                <span th:case="'03'" style="color:forestgreen; background: black"> <i class="fa fa-battery-4 fa-fw fa-1g" ></i>  电量全满</span>
+                <span th:case="'02'" style="color:forestgreen; background: black"> <i class="fa fa-battery-3 fa-fw fa-1g" ></i>  电池余量70%</span>
+                <span th:case="'01'" style="color:darkorange; background: black"> <i class="fa fa-battery-2 fa-fw fa-1g" ></i>  电池余量30%</span>
+                <span th:case="'00'" class="warningBattery" style="color:red; background: black"> <i class="fa fa-battery-1 fa-fw fa-1g"></i>  余量不足10%</span>
+            </div>
+        </a>
+    </li>
+</ul>
+    <button class="btn btn-success" style="margin-top: 35px" th:attr="data-sensorId=${sensor.sensorId}" th:onclick="showSensorCurve(this)">今日趋势</button>
+    <button class="btn btn-primary" style="margin-top: 35px" th:attr="data-sensorId=${sensor.sensorId}" th:onclick="showHisSensorCurve(this)">历史记录</button>
+</div>
+
+<div id="curve-container" class="curve-part" style="width: 100%;height: 60%; margin-top: 11%;">
+</div>
+
+</body>
+</html>

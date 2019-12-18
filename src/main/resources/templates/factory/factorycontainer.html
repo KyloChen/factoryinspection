@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <title>厂房地图</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="智能厂房管理系统">
+
+    <!--<link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinspection.css}">-->
+    <!--<link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinside.css}">-->
+    <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap-table.min.css}">
+
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery.timers-1.2.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/js/hls.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/ezuikit.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap-table.min.js}"></script>
+    <script>
+        var player;
+        $(document).ready(function() {
+            player = new EZUIKit.EZUIPlayer('myPlayer');
+        });
+        var click = true;
+        function showCameraContainer(){
+            var cameraContainer = document.getElementById('cameraContainer');
+            var cameraOperate = document.getElementById('cameraOperate');
+            if(click){
+                player.play();
+                cameraContainer.style.display = "block";
+                cameraOperate.innerText = "点击关闭";
+                click = false;
+            }else {
+                player.stop();
+                cameraContainer.style.display = "none";
+                cameraOperate.innerText = "查看视频";
+                click = true;
+            }
+        }
+        function isEmpty(value){
+            if(value == null || value == "" || value == "undefined" || value == undefined || value == "null"){
+                return true;
+            }
+            else{
+                value = value.replace(/\s/g,"");
+                if(value == ""){
+                    return true;
+                }
+                return false;
+            }
+        }
+        function saveSensorCode() {
+            var sensorCode = document.getElementById("sensorCode").value;
+            $("#saveTerminalBtn").attr("disabled", true);
+            var inputData = {};
+            inputData.sensorCode = sensorCode;
+            if(isEmpty(sensorCode)){
+                alert("设备特征码不能为空!");
+                return;
+            }
+            console.log(inputData);
+            $.ajax({
+                //几个参数需要注意一下
+                type: "POST",//方法类型
+                contentType:"application/x-www-form-urlencoded",
+                url: "/factoryinspection/newFactory/addSensor" ,//url
+                data: inputData,
+                success: function (result) {
+                    $("#saveTerminalBtn").attr("disabled", false);
+                    alert(result);
+                    window.history.go(0);
+                },
+                error : function(result) {
+                    $("#saveTerminalBtn").attr("disabled", false);
+                    alert(result);
+                    console.log(result);
+                }
+            });
+        }
+        function showCellarInfo(that){
+            var cellarId = $(that).attr('data-cellarId');
+            var inputData = {};
+            console.log(cellarId);
+            inputData.cellarId = cellarId;
+            $.ajax({
+                url: "/factoryinspection/newFactory/showCellarInfo",
+                method: "post",
+                data: inputData,
+                success: function (result) {
+                    var divshow = $("#cellar-container");
+                    divshow.text("");// 清空数据
+                    divshow.append(result);
+                    // $("#tableInfoContainer").html(result);
+                },
+                error: function () {
+                    alert("error showing cellar container.");
+                }
+            });
+        }
+        function getThresholdTable() {
+            $.ajax({
+                method: "post",
+                url: "/factoryinspection/newFactory/getThresholdTable",
+                dataType: "json",
+                success: function (result) {
+                    $('#table').bootstrapTable({
+                        data: result, //数据源
+                        striped: true, //表格显示条纹
+                        contentType:"application/x-www-form-urlencoded",
+                        dataType: 'json',
+                        // pagination: true, //是否分页
+                        // pageSize: 10, //每页显示的记录数
+                        // pageNumber:1, //当前第几页
+                        // search: true, //是否可以查询
+                        smartDisplay:false,
+                        // pageList: [5, 10, 15, 20, 25], //记录数可选列表
+                        columns: [{
+                            field: 'alarmLevel',
+                            title: '告警等级',
+                            align : 'center',
+                            valign: 'middle',
+                            formatNoMatches:function(){
+                                return "无阈值设置，请添加";
+                            },
+                            sortable:true
+                        },
+                            {
+                                field: 'alarmColor',
+                                title: '告警颜色',
+                                align : 'center',
+                                valign: 'middle',
+                                formatter: function operateFormatter(value, row, index){
+                                    if( value == "green"){
+                                        return "<span style='color:forestgreen;'>绿色正常预警</span>";
+                                    }else if(value == "orange"){
+                                        return "<span style='color:darkorange;'>橙色中度预警</span>";
+                                    }else if(value == "red"){
+                                        return "<span style='color:red;'>红色严重警告</span>";
+                                    }
+                                }
+                            },
+                            {
+                                field: 'minValue',
+                                title: '最小告警值',
+                                align : 'center',
+                                valign: 'middle'
+                            },
+                            {
+                                field: 'maxValue',
+                                title: '最大告警值',
+                                align : 'center',
+                                valign: 'middle'
+                            }
+                            , {
+                                //按钮
+                                field: 'operate',
+                                title: '操作',
+                                //事件
+                                events: window.operateEvents,
+                                //按钮样式
+                                formatter: AddFunctionAlty,
+                                align : 'center',
+                                valign: 'middle'
+                            }
+                        ]
+                    })
+                }
+            });
+
+        }
+
+        </script>
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .main{
+            width: 100%;
+            height: 100%;
+        }
+        html,body{
+            width: 100%;
+            height: 100%;
+
+        }
+        .quarter-div{
+            width: 50%;
+            height: 50%;
+            float: left;
+        }
+        .pit-container{
+            width: 60%;
+            height: 100%;
+            float: left;
+        }
+        .cellar-container{
+            width: 40%;
+            height: 100%;
+            float: left;
+        }
+        .video-container{
+            width: 30%;
+            height: 21%;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+        }
+        .vertical-li{
+            list-style-image: none;
+            list-style-type: none;
+            float: left;
+        }
+        .pit-container::-webkit-scrollbar {
+            display:none
+        }
+        .pit-container-ul{
+            padding: 12% 2%;
+        }
+        .sensor-img{
+            width: 42px;
+            height: 42px;
+        }
+        #cameraOperate{
+            font-size: 12px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            float: left;
+        }
+        #cameraContainer{
+            display: none;
+            position: absolute;
+            top: 34px;
+            left: 0;
+        }
+
+        </style>
+</head>
+<body style="background: #000000;">
+<input style="display: none" th:value="${plant}">
+<div style="width: 100%; color: #bc201a; font-size: 30px; text-align: center; position:absolute; top: 5px; ">西凤酒业酒窖温度无线监控系统</div>
+<button id="addTerminal" style="font-size: 12px; position: absolute; left: 80px;" class="btn btn-success" data-toggle="modal" data-target="#myModal">添加设备</button>
+<button id="setAlarmLevel" style="font-size: 12px; position: absolute; left: 160px;" class="btn btn-primary" data-toggle="modal" data-target="#thresholdModel" onclick="getThresholdTable()">设备阈值</button>
+<!--添加设备model-->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">添加设备</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="sensorCode" class="control-label">设备ID:</label>
+                        <input type="text" class="form-control" id="sensorCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="plantCode" class="control-label">当前车间:</label>
+                        <input class="form-control" readonly="readonly" id="plantCode" th:value="${plant.plantName}">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" >
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="float: right;margin-right: 7px;">关闭</button>
+                <button type="button" id="saveTerminalBtn" class="btn btn-success" onclick="saveSensorCode()" style="float: right;margin-right: 20px">保存设备</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<div class="main">
+    <div style="overflow: scroll" class="quarter-div pit-container">
+        <ul class="pit-container-ul">
+            <li style="width: 60px;height: 550px;background:black url(../static/img/pitLeftPadding.png) 2px 2px no-repeat" class="vertical-li pit-container-border" ></li>
+            <li style="width: 193px;min-height: 550px;text-align: center; background: black url(../static/img/pitMap.png) 2px 2px no-repeat " class="vertical-li pit-container-border" th:each="pit:${pits}" >
+             <span style="color: whitesmoke; position: relative;bottom: 20px;" th:text="'第 ' + ${pit.pitCode} +' 垮'">
+             </span>
+                <ul>
+                    <li style="max-width: 38px;margin-top: 30px;" class="vertical-li pit-container-border" th:each="row:${pit.rows}">
+                    <span style="color: whitesmoke;" th:text="'排 ' + ${row.rowCode}"></span>
+                        <ul>
+                            <li class="vertical-li" th:each="cellar:${row.cellars}">
+                                <div style="cursor: pointer" th:switch="${cellar.sensor.alarmLevel}" th:attr="data-cellarId=${cellar.cellarId}" th:onclick="showCellarInfo(this)">
+                                    <img class="sensor-img" th:case="1" th:src="@{/static/img/sensorIcon.png}" th:alt="${row.rowCode}">
+                                    <img class="sensor-img" th:case="2" th:src="@{/static/img/sensorIconOrange.png}" th:alt="${row.rowCode}">
+                                    <img class="sensor-img" th:case="3" th:src="@{/static/img/sensorIconWarn.png}" th:alt="${row.rowCode}">
+                                    <img class="sensor-img" th:case="4" th:src="@{/static/img/sensorIconWarn.png}" th:alt="${row.rowCode}">
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    <div id="cellar-container" class="cellar-container" style="float: right;color: whitesmoke; font-size: 20px; text-align: center; ">
+        <span style="position: relative;top: 50%;">← 请在左侧选择设备查看详细测温值.</span>
+    </div>
+    <div id="cameraHideBar">
+        <button id="cameraOperate" class="btn btn-primary" onclick="showCameraContainer()">
+            视频窗口
+        </button>
+        <div id="cameraContainer">
+            <video id="myPlayer" class = "camera_player"
+                   width="100px"
+                   autoplay="false"
+                   controls playsInline webkit-playsinline>
+                <source src="http://hls01open.ys7.com/openlive/085906b09e274eba90cf22093fa93a6f.m3u8" type="application/x-mpegURL" />
+            </video>
+        </div>
+    </div>
+    <!--<div id="curve-container" class="quarter-div curve-container"  style="text-align: center;vertical-align: center">-->
+        <!--请在左上角选择想要查看的窖号.-->
+    <!--</div>-->
+</div>
+</body>
+</html>

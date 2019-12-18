@@ -1,5 +1,7 @@
 package com.loohos.factoryinspection.model.formbean;
 
+import com.loohos.factoryinspection.model.local.Cellar;
+import com.loohos.factoryinspection.model.local.Plant;
 import com.loohos.factoryinspection.model.local.Terminal;
 
 public class TerminalGroup extends BaseFormBean {
@@ -10,6 +12,7 @@ public class TerminalGroup extends BaseFormBean {
     private int topAlarmLevel;
     private int midAlarmLevel;
     private int botAlarmLevel;
+    private Plant plant;
     private String batteryState;
 
     public Terminal getTerminal() {
@@ -76,4 +79,11 @@ public class TerminalGroup extends BaseFormBean {
         this.batteryState = batteryState;
     }
 
+    public Plant getPlant() {
+        return plant;
+    }
+
+    public void setPlant(Plant plant) {
+        this.plant = plant;
+    }
 }
