@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="智能厂房管理系统">
 
-    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinspection.css}">
-    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinside.css}">
+    <!--<link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinspection.css}">-->
+    <!--<link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinside.css}">-->
     <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
     <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/static/css/bootstrap-table.min.css}">
@@ -22,10 +22,15 @@
 
         function showCurve(that){
             var sensorId = $(that).attr('data-sensorId');
+            console.log(sensorId);
+            if(sensorId == undefined || sensorId == null || sensorId == ''){
+                alert("该设备未启用！");
+                return;
+            }
             var inputData = {};
             inputData.sensorId = sensorId;
             $.ajax({
-                url: "/factoryinspection/newFactory/showSensorCurve",
+                url: "/factoryinspection/server/showSensorCurve",
                 method: "post",
                 data: inputData,
                 success: function (result) {
@@ -45,7 +50,7 @@
             var inputData = {};
             inputData.sensorId = sensorId;
             $.ajax({
-                url: "/factoryinspection/newFactory/showHisSensorCurve",
+                url: "/factoryinspection/winery/showHisSensorCurve",
                 method: "post",
                 data: inputData,
                 success: function (result) {
@@ -86,6 +91,11 @@
             margin-top: -16px;
             z-index: 9999;
         }
+        .vertical-li{
+            list-style-image: none;
+            list-style-type: none;
+            float: left;
+        }
         .sensor-img{
             width: 92px;
             height: 83px;
@@ -106,15 +116,16 @@
              <span style="color: whitesmoke; position: relative;" th:text="'第 '+${pit.pitCode}+' 垮'">
              </span>
             <ul>
-                <li style="max-width: 92px;" class="vertical-li pit-container-border" th:each="row:${cellarTree}">
+                <li style="max-width: 92px;" class="vertical-li pit-container-border"  th:each="row:${cellarTree}">
                     <span style="color: whitesmoke;" th:text="'排 '+${row.key}"></span>
                     <ul>
-                        <li class="vertical-li" th:each="cellar:${row.value}">
-                            <div style="cursor: pointer;width: 92px; height: 83px;" th:switch="${cellar.sensor.alarmLevel}" >
-                                <div class="sensor-img" th:case="1" style="color: forestgreen;font-size: 17px; padding: 14px 0;background:black url(../static/img/sensorIcon.png) 2px 2px no-repeat " th:text="'窖'+${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)" ></div>
-                                <div class="sensor-img" th:case="2" style="color: darkorange;font-size: 17px; padding: 14px 0;background:black url(../static/img/sensorIconOrange.png) 2px 2px no-repeat " th:text="'窖'+${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)" ></div>
-                                <div class="sensor-img" th:case="3" style="color: red;font-size: 17px; padding: 14px 0;background:black url(../static/img/sensorIconWarn.png) 2px 2px no-repeat " th:text="'窖'+${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)" ></div>
-                                <div class="sensor-img" th:case="4" style="color: red;font-size: 17px; padding: 14px 0;background:black url(../static/img/sensorIconWarn.png) 2px 2px no-repeat " th:text="'窖'+${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)" ></div>
+                        <li class="vertical-li"  th:each="cellar:${row.value}">
+                            <div style="cursor: pointer;width: 92px; height: 83px;" th:switch="${cellar.serverSensor.alarmLevel}" >
+                                <div class="sensor-img" th:case="0" style="color: darkgrey;font-size: 17px; padding: 14px 0;background:black url(../static/img/sensorIconBanned.png) 2px 2px no-repeat " th:text="'窖'+${cellar.cellarCode}" th:attr="data-sensorId=${cellar.serverSensor.sensorId}" th:onclick="showCurve(this)" ></div>
+                                <div class="sensor-img" th:case="1" style="color: forestgreen;font-size: 17px; padding: 14px 0;background:black url(../static/img/sensorIcon.png) 2px 2px no-repeat " th:text="'窖'+${cellar.cellarCode}" th:attr="data-sensorId=${cellar.serverSensor.sensorId}" th:onclick="showCurve(this)" ></div>
+                                <div class="sensor-img" th:case="2" style="color: darkorange;font-size: 17px; padding: 14px 0;background:black url(../static/img/sensorIconOrange.png) 2px 2px no-repeat " th:text="'窖'+${cellar.cellarCode}" th:attr="data-sensorId=${cellar.serverSensor.sensorId}" th:onclick="showCurve(this)" ></div>
+                                <div class="sensor-img" th:case="3" style="color: red;font-size: 17px; padding: 14px 0;background:black url(../static/img/sensorIconWarn.png) 2px 2px no-repeat " th:text="'窖'+${cellar.cellarCode}" th:attr="data-sensorId=${cellar.serverSensor.sensorId}" th:onclick="showCurve(this)" ></div>
+                                <div class="sensor-img" th:case="4" style="color: red;font-size: 17px; padding: 14px 0;background:black url(../static/img/sensorIconWarn.png) 2px 2px no-repeat " th:text="'窖'+${cellar.cellarCode}" th:attr="data-sensorId=${cellar.serverSensor.sensorId}" th:onclick="showCurve(this)" ></div>
                                 <!--<img class="sensor-img" th:case="1" th:src="@{/static/img/sensorIcon.png}" th:alt="${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)">-->
                                 <!--<img class="sensor-img" th:case="2" th:src="@{/static/img/sensorIconOrange.png}" th:alt="${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)">-->
                                 <!--<img class="sensor-img" th:case="3" th:src="@{/static/img/sensorIconWarn.png}" th:alt="${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)">-->

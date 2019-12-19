@@ -9,6 +9,7 @@ public class Row {
     private int rowCode;
     private Pit pit;
     private Set<Cellar> cellars;
+    private String rowType = "true";
 
     @Id
     @Column(nullable = false)
@@ -46,5 +47,14 @@ public class Row {
 
     public void setCellars(Set<Cellar> cellars) {
         this.cellars = cellars;
+    }
+
+    @Column
+    public String getRowType() {
+        return rowType;
+    }
+
+    public void setRowType(String rowType) {
+        this.rowType = rowType;
     }
 }

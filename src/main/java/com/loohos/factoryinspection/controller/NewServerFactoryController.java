@@ -33,7 +33,7 @@ import static com.loohos.factoryinspection.enumeration.SensorType.MID_TEMP_SENSO
 import static com.loohos.factoryinspection.enumeration.SensorType.TOP_TEMP_SENSOR;
 
 @Controller
-@RequestMapping(value = "/newServerFactory")
+@RequestMapping(value = "/server")
 public class NewServerFactoryController {
     @Value("${com.loohos.machineType}")
     private String machineType;
@@ -72,7 +72,7 @@ public class NewServerFactoryController {
         }else{
             logger.info("into plant map, no message gotta.");
         }
-        return "factory/serverfactoryplant";
+        return "winery/serverPage/serverPlantMap";
     }
 
     @RequestMapping(value = "/index",produces={"text/html;charset=UTF-8;","application/json;"})
@@ -86,49 +86,98 @@ public class NewServerFactoryController {
 
         List<ServerTerritory> territories = serverTerritoryService.getTerritoriesByPlant(plant);
         List<ServerPit> pits = new ArrayList<>();
-        List<ServerSensor> sensors = new ArrayList<>();
         if(territories == null){
             logger.info("no territories, please add one.");
             return "factory/serverfactorycontainer";
         }
         else {
-            modelMap.put("serverTerritories", territories);
             for(ServerTerritory territory: territories) {
-                List<ServerTeam> teams1 = serverTeamService.getTeamsByTerritory(territory);
-                for (ServerTeam team : teams1) {
+                List<ServerTeam> teams = serverTeamService.getTeamsByTerritory(territory);
+                for (ServerTeam team : teams) {
                     List<ServerPit> pits1 = serverPitService.getPitsByTeam(team);
                     pits.addAll(pits1);
-                    for (ServerPit pit : pits) {
-                        List<ServerRow> rows = serverRowService.getRowByPit(pit);
-                        for (ServerRow row : rows) {
-                            List<ServerCellar> cellars = serverCellarService.getCellarByRow(row);
-                            for (ServerCellar cellar : cellars) {
-                                ServerSensor sensor = serverSensorService.getSensorByCellar(cellar);
-                                sensors.add(sensor);
-                            }
-                        }
-                    }
                 }
             }
             modelMap.put("serverPits", pits);
-            modelMap.put("serverSensors", sensors);
         }
-        return "factory/serverfactorycontainer";
+        return "winery/serverPage/serverPlantInside";
     }
 
-    @RequestMapping(value = "/showCellarInfo",produces={"text/html;charset=UTF-8;","application/json;"})
-    public String showCellarInfo(@ModelAttribute Cellar inputData,
-                                 ModelMap modelMap){
-        ServerCellar cellar = serverCellarService.find(inputData.getCellarId());
-        ServerSensor sensor = serverSensorService.getSensorByCellar(cellar);
-        modelMap.put("serverSensor", sensor);
-        ServerSensorNode topNode = serverSensorNodeService.getNodeBySensorWithTypeAndCurTime(sensor, TOP_TEMP_SENSOR);
-        ServerSensorNode midNode = serverSensorNodeService.getNodeBySensorWithTypeAndCurTime(sensor, MID_TEMP_SENSOR);
-        ServerSensorNode botNode = serverSensorNodeService.getNodeBySensorWithTypeAndCurTime(sensor, BOT_TEMP_SENSOR);
-        modelMap.put("serverTopNode", topNode);
-        modelMap.put("serverMidNode", midNode);
-        modelMap.put("serverBotNode", botNode);
-        return "factory/serverFactoryCellarContainer";
+    /**
+     * 获取设备阈值
+     */
+    @RequestMapping(value = "getThresholdTable",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String getThresholdTable(ModelMap modelMap){
+        List<ConfigAlarmLevel> alarmLevels = configAlarmLevelService.getScrollData().getResultList();
+        Collections.sort(alarmLevels, new Comparator<ConfigAlarmLevel>() {
+            @Override
+            public int compare(ConfigAlarmLevel u1, ConfigAlarmLevel u2) {
+                if (u1.getAlarmLevel() > u2.getAlarmLevel()) {
+                    return -1;
+                }
+                if (u1.getAlarmLevel() == u2.getAlarmLevel()) {
+                    return 0;
+                }
+                return 1;
+            }
+        });
+        String retString = JSON.toJSONString(alarmLevels);
+        return retString;
+    }
+
+    @RequestMapping(value = "/showCellar",produces={"text/html;charset=UTF-8;","application/json;"})
+    public String showCellar(@ModelAttribute Pit inputData,
+                             ModelMap modelMap){
+        ServerPit pit = serverPitService.find(inputData.getPitId());
+        modelMap.put("pit", pit);
+        List<ServerRow> rows = serverRowService.getRowByPit(pit);
+        Map<Integer, List<ServerCellar>> cellarTree = new TreeMap<>();
+        if(rows.size() < 4){
+            for (int i = rows.size()+1; i<=4 ; i++){
+                ServerRow row = new ServerRow();
+                row.setRowCode(i);
+                row.setRowType("false");
+                rows.add(row);
+            }
+        }
+        modelMap.put("rows", rows);
+        for(ServerRow row: rows){
+            List<ServerCellar> cellars = new ArrayList<>();
+            if(row.getRowType().equals("false")){
+                for(int i = 1; i<=12; i++){
+                    ServerCellar cellar = new ServerCellar();
+                    cellar.setCellarCode(i);
+                    cellar.setCellarType("false");
+                    ServerSensor sensor = new ServerSensor();
+                    sensor.setAlarmLevel(0);
+                    cellar.setServerSensor(sensor);
+                    cellars.add(cellar);
+                    logger.info("填充项");
+                }
+            }else if( cellars.size() < 12 ){
+                cellars = serverCellarService.getCellarByRowDesc(row);
+                for(int i = cellars.size()+1; i<=12; i++){
+                    ServerCellar cellar = new ServerCellar();
+                    cellar.setCellarCode(i);
+                    cellar.setCellarType("false");
+                    ServerSensor sensor = new ServerSensor();
+                    sensor.setAlarmLevel(0);
+                    cellar.setServerSensor(sensor);
+                    cellars.add(cellar);
+                    logger.info("正常项");
+                }
+            }
+            Collections.sort(cellars, new Comparator<ServerCellar>() {
+                @Override
+                public int compare(ServerCellar o1, ServerCellar o2) {
+                    return o2.getCellarCode() - o1.getCellarCode();
+                }
+            });
+            cellarTree.put(row.getRowCode(), cellars);
+        }
+        modelMap.put("cellarTree",cellarTree);
+        return "winery/serverPage/cellarContainer";
     }
 
     @RequestMapping(value = "/showSensorCurve",produces={"text/html;charset=UTF-8;","application/json;"})
@@ -142,42 +191,98 @@ public class NewServerFactoryController {
         List<Date> createdTime = serverSensorNodeService.getTimeBySensorAndCurDay(sensor);
         Gson topGson = new Gson();
         String topRetString = topGson.toJson(topTemps);
-        modelMap.put("serverTopTemps", topRetString);
+        modelMap.put("topTemps", topRetString);
         Gson midGson = new Gson();
         String midRetString = midGson.toJson(midTemps);
-        modelMap.put("serverMidTemps", midRetString);
+        modelMap.put("midTemps", midRetString);
         Gson botGson = new Gson();
         String botRetString = botGson.toJson(botTemps);
-        modelMap.put("serverBotTemps", botRetString);
+        modelMap.put("botTemps", botRetString);
         Gson timeGson = new Gson();
         String timeRetString = timeGson.toJson(createdTime);
         modelMap.put("createdTimes", timeRetString);
-        return "factory/serverFactoryCurveContainer";
-    }
 
-    @RequestMapping(value = "/showHisSensorCurve",produces={"text/html;charset=UTF-8;","application/json;"})
-    public String showHisSensorCurve(@ModelAttribute Sensor inputData,
-                                     ModelMap modelMap){
-        ServerSensor sensor = serverSensorService.find(inputData.getSensorId());
-        modelMap.put("sensorId", sensor.getSensorId());
         List<Double> hisTopTemps = serverSensorNodeService.getHistoryNodeBySensorWithTypeAndCurDay(sensor, TOP_TEMP_SENSOR);
         List<Double> hisMidTemps = serverSensorNodeService.getHistoryNodeBySensorWithTypeAndCurDay(sensor, MID_TEMP_SENSOR);
         List<Double> hisBotTemps = serverSensorNodeService.getHistoryNodeBySensorWithTypeAndCurDay(sensor, BOT_TEMP_SENSOR);
         List<Date> hisCreatedTime = serverSensorNodeService.getHistoryTimeBySensorAndCurDay(sensor);
-        Gson topGson = new Gson();
-        String topRetString = topGson.toJson(hisTopTemps);
-        modelMap.put("hisTopTemps", topRetString);
-        Gson midGson = new Gson();
-        String midRetString = midGson.toJson(hisMidTemps);
-        modelMap.put("hisMidTemps", midRetString);
-        Gson botGson = new Gson();
-        String botRetString = botGson.toJson(hisBotTemps);
-        modelMap.put("hisBotTemps", botRetString);
-        Gson timeGson = new Gson();
-        String timeRetString = timeGson.toJson(hisCreatedTime);
-        modelMap.put("hisCreatedTime", timeRetString);
-        return "factory/serverFactoryHisCurveContainer";
+        Gson topHisGson = new Gson();
+        String topHisRetString = topHisGson.toJson(hisTopTemps);
+        modelMap.put("hisTopTemps", topHisRetString);
+        Gson midHisGson = new Gson();
+        String midHisRetString = midHisGson.toJson(hisMidTemps);
+        modelMap.put("hisMidTemps", midHisRetString);
+        Gson botHisGson = new Gson();
+        String botHisRetString = botHisGson.toJson(hisBotTemps);
+        modelMap.put("hisBotTemps", botHisRetString);
+        Gson timeHisGson = new Gson();
+        String timeHisRetString = timeHisGson.toJson(hisCreatedTime);
+        modelMap.put("hisCreatedTime", timeHisRetString);
+        return "winery/serverPage/factoryCurveContainer";
     }
+//
+//    @RequestMapping(value = "/showCellarInfo",produces={"text/html;charset=UTF-8;","application/json;"})
+//    public String showCellarInfo(@ModelAttribute Cellar inputData,
+//                                 ModelMap modelMap){
+//        ServerCellar cellar = serverCellarService.find(inputData.getCellarId());
+//        ServerSensor sensor = serverSensorService.getSensorByCellar(cellar);
+//        modelMap.put("serverSensor", sensor);
+//        ServerSensorNode topNode = serverSensorNodeService.getNodeBySensorWithTypeAndCurTime(sensor, TOP_TEMP_SENSOR);
+//        ServerSensorNode midNode = serverSensorNodeService.getNodeBySensorWithTypeAndCurTime(sensor, MID_TEMP_SENSOR);
+//        ServerSensorNode botNode = serverSensorNodeService.getNodeBySensorWithTypeAndCurTime(sensor, BOT_TEMP_SENSOR);
+//        modelMap.put("serverTopNode", topNode);
+//        modelMap.put("serverMidNode", midNode);
+//        modelMap.put("serverBotNode", botNode);
+//        return "factory/serverFactoryCellarContainer";
+//    }
+//
+//    @RequestMapping(value = "/showSensorCurve",produces={"text/html;charset=UTF-8;","application/json;"})
+//    public String showSensorCurve(@ModelAttribute Sensor inputData,
+//                                  ModelMap modelMap){
+//        ServerSensor sensor = serverSensorService.find(inputData.getSensorId());
+//        modelMap.put("sensorId", sensor.getSensorId());
+//        List<Double> topTemps = serverSensorNodeService.getNodeBySensorWithTypeAndCurDay(sensor, TOP_TEMP_SENSOR);
+//        List<Double> midTemps = serverSensorNodeService.getNodeBySensorWithTypeAndCurDay(sensor, MID_TEMP_SENSOR);
+//        List<Double> botTemps = serverSensorNodeService.getNodeBySensorWithTypeAndCurDay(sensor, BOT_TEMP_SENSOR);
+//        List<Date> createdTime = serverSensorNodeService.getTimeBySensorAndCurDay(sensor);
+//        Gson topGson = new Gson();
+//        String topRetString = topGson.toJson(topTemps);
+//        modelMap.put("serverTopTemps", topRetString);
+//        Gson midGson = new Gson();
+//        String midRetString = midGson.toJson(midTemps);
+//        modelMap.put("serverMidTemps", midRetString);
+//        Gson botGson = new Gson();
+//        String botRetString = botGson.toJson(botTemps);
+//        modelMap.put("serverBotTemps", botRetString);
+//        Gson timeGson = new Gson();
+//        String timeRetString = timeGson.toJson(createdTime);
+//        modelMap.put("createdTimes", timeRetString);
+//        return "factory/serverFactoryCurveContainer";
+//    }
+//
+//    @RequestMapping(value = "/showHisSensorCurve",produces={"text/html;charset=UTF-8;","application/json;"})
+//    public String showHisSensorCurve(@ModelAttribute Sensor inputData,
+//                                     ModelMap modelMap){
+//        ServerSensor sensor = serverSensorService.find(inputData.getSensorId());
+//        modelMap.put("sensorId", sensor.getSensorId());
+//        List<Double> hisTopTemps = serverSensorNodeService.getHistoryNodeBySensorWithTypeAndCurDay(sensor, TOP_TEMP_SENSOR);
+//        List<Double> hisMidTemps = serverSensorNodeService.getHistoryNodeBySensorWithTypeAndCurDay(sensor, MID_TEMP_SENSOR);
+//        List<Double> hisBotTemps = serverSensorNodeService.getHistoryNodeBySensorWithTypeAndCurDay(sensor, BOT_TEMP_SENSOR);
+//        List<Date> hisCreatedTime = serverSensorNodeService.getHistoryTimeBySensorAndCurDay(sensor);
+//        Gson topGson = new Gson();
+//        String topRetString = topGson.toJson(hisTopTemps);
+//        modelMap.put("hisTopTemps", topRetString);
+//        Gson midGson = new Gson();
+//        String midRetString = midGson.toJson(hisMidTemps);
+//        modelMap.put("hisMidTemps", midRetString);
+//        Gson botGson = new Gson();
+//        String botRetString = botGson.toJson(hisBotTemps);
+//        modelMap.put("hisBotTemps", botRetString);
+//        Gson timeGson = new Gson();
+//        String timeRetString = timeGson.toJson(hisCreatedTime);
+//        modelMap.put("hisCreatedTime", timeRetString);
+//        return "factory/serverFactoryHisCurveContainer";
+//    }
 
     /**
      *根据日期查询
@@ -216,6 +321,7 @@ public class NewServerFactoryController {
             return "获取历史数据错误";
         }
     }
+
 
     @RequestMapping(value = "/localUploadServerPlant",produces={"text/html;charset=UTF-8;","application/json;"})
     @ResponseBody

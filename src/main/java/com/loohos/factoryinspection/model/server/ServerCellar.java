@@ -10,6 +10,7 @@ public class ServerCellar {
     private ServerSensor serverSensor;
     private ServerRow serverRow;
     private String localCellarId;
+    private String cellarType = "true";
 
     @Id
     @Column
@@ -56,5 +57,14 @@ public class ServerCellar {
 
     public void setLocalCellarId(String localCellarId) {
         this.localCellarId = localCellarId;
+    }
+
+    @Column
+    public String getCellarType() {
+        return cellarType;
+    }
+
+    public void setCellarType(String cellarType) {
+        this.cellarType = cellarType;
     }
 }

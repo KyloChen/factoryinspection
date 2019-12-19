@@ -30,10 +30,10 @@
 <div id="mainDiv" style="padding: 0 21%">
     <div id="dateTimeSelector" class="form-inline" style="display: none">
         <div class="input-group date form_date mr10">
-            <input class="form-control" style="max-width: 80px" placeholder="开始日期" readonly="readonly" type="text" value="" id="startDate">
+            <input class="form-control" style="max-width: 100px" placeholder="开始日期" readonly="readonly" type="text" value="" id="startDate">
         </div>
         <div class="input-group date form_date">
-            <input class="form-control" style="max-width: 80px" placeholder="结束日期" readonly="readonly" type="text" value="" id="endDate">
+            <input class="form-control" style="max-width: 100px" placeholder="结束日期" readonly="readonly" type="text" value="" id="endDate">
         </div>
         <button class="btn btn-group-xs btn-primary" id="dateRangeQueryBtn" onclick="queryByDateRange()">查询</button>
         <button class="btn btn-group-xs btn-primary" id="dateRangeResetBtn" onclick="resetTimeRange()">重置</button>
@@ -179,6 +179,7 @@
         ]
 
     };
+    var hisCreatedTime = JSON.parse([[${hisCreatedTime}]]);
     var topHisTemps = JSON.parse([[${hisTopTemps}]]);
     var midHisTemps = JSON.parse([[${hisMidTemps}]]);
     var botHisTemps = JSON.parse([[${hisBotTemps}]]);
@@ -226,7 +227,7 @@
             name: "时间(时：分)",
             type: 'category',
             boundaryGap: false,
-            data: dates,
+            data: hisCreatedTime,
             axisLabel: {
                 //处理时间格式
                 formatter: function (value, index) {
@@ -256,20 +257,20 @@
                 name:'上层温度值',
                 type:'line',
                 smooth: true,
-                data: topTemps
+                data: topHisTemps
             },
             {
                 name:'中层温度值',
                 type:'line',
                 smooth: true,
                 connectNulls: true ,//连接数据为null的前后点
-                data: midTemps
+                data: midHisTemps
             },
             {
                 name:'底层温度值',
                 type:'line',
                 smooth: true,
-                data: botTemps
+                data: botHisTemps
             }
         ]
 
@@ -309,7 +310,7 @@
         $.ajax({
             type: "POST",//方法类型
             dataType: "json",//预期服务器返回的数据类型
-            url: "/factoryinspection/newFactory/queryByDateRange" ,//url
+            url: "/factoryinspection/server/queryByDateRange" ,//url
             data: inputData,
             success: function (result) {
                 console.log(result + "aaa");

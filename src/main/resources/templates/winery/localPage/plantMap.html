@@ -100,7 +100,7 @@
             inputData.clientX = parseInt(clientX);
             inputData.clientY = clientY;
             $.ajax({
-                url: "/factoryinspection/newFactory/savePlant",
+                url: "/factoryinspection/winery/savePlant",
                 method: "post",
                 data: inputData,
                 success: function (result) {
@@ -119,18 +119,22 @@
             // e.target表示被点击的目标
             var machineType =$('#machineType').val();
             var plantId = $(e.target).attr("plantId");
-            if(machineType=="server"){
-                if(plantId == null){
-                    return;
-                }
-                // location.href =  projectName+"/serverfactory/serverfactorycontainer?factoryId=" + plantId;
-                location.href =  projectName+"/newFactory/index?plantId=" + plantId;
-            }else if(machineType == "local"){
-                if(plantId == null){
-                    return;
-                }
-                location.href =  projectName+"/newFactory/index?plantId=" + plantId;
+            if(plantId == null){
+                return;
             }
+            location.href =  projectName+"/winery/index?plantId=" + plantId;
+            // if(machineType=="server"){
+            //     if(plantId == null){
+            //         return;
+            //     }
+            //     // location.href =  projectName+"/serverfactory/serverfactorycontainer?factoryId=" + plantId;
+            //     location.href =  projectName+"/winery/index?plantId=" + plantId;
+            // }else if(machineType == "local"){
+            //     if(plantId == null){
+            //         return;
+            //     }
+            //     location.href =  projectName+"/winery/index?plantId=" + plantId;
+            // }
         });
 
         function closeSaveFactory() {

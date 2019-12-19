@@ -37,7 +37,7 @@ import static com.loohos.factoryinspection.enumeration.SensorType.MID_TEMP_SENSO
 import static com.loohos.factoryinspection.enumeration.SensorType.TOP_TEMP_SENSOR;
 
 @Controller
-@RequestMapping(value = "/newFactory")
+@RequestMapping(value = "/winery")
 public class NewFactoryController  {
     private Logger logger = LoggerFactory.getLogger(NewFactoryController.class);
     private SerialCommThread commThread = new SerialCommThread();
@@ -101,7 +101,7 @@ public class NewFactoryController  {
             modelMap.put("status", "error");
             logger.info("into plant map111, no message gotta.");
         }
-        return "factory/plantMap";
+        return "winery/localPage/plantMap";
     }
 
     /**
@@ -155,10 +155,9 @@ public class NewFactoryController  {
 
         List<Territory> territories = territoryService.getTerritoriesByPlant(plant);
         List<Pit> pits = new ArrayList<>();
-        List<Sensor> sensors = new ArrayList<>();
         if(territories == null){
 //            return "factory/factorycontainer";
-            return "factory/plantInside";
+            return "winery/localPage/plantInside";
         }
         else {
             modelMap.put("territories", territories);
@@ -170,10 +169,9 @@ public class NewFactoryController  {
                 }
             }
             modelMap.put("pits", pits);
-            modelMap.put("sensors", sensors);
         }
 //        return "factory/factorycontainer";
-        return "factory/plantInside";
+        return "winery/localPage/plantInside";
     }
     /**
      * 获取设备阈值
@@ -342,26 +340,53 @@ public class NewFactoryController  {
         Pit pit = pitService.find(inputData.getPitId());
         modelMap.put("pit", pit);
         List<Row> rows = rowService.getRowByPit(pit);
-        Map<Integer,Sensor> sensors = new TreeMap<>();
         Map<Integer, List<Cellar>> cellarTree = new TreeMap<>();
-        Collections.sort(rows, new Comparator<Row>() {
-            @Override
-            public int compare(Row o1, Row o2) {
-                return o1.getRowCode() - o2.getRowCode();
-            }
-        });
-        modelMap.put("rows", rows);
-        for(Row row: rows){
-            List<Cellar> cellars = cellarService.getCellarByRowDesc(row);
-            cellarTree.put(row.getRowCode(), cellars);
-            for (Cellar cellar: cellars) {
-                Sensor sensor = sensorService.getSensorByCellar(cellar);
-                sensors.put(cellar.getCellarCode(), sensor);
+        if(rows.size() < 4){
+            for (int i = rows.size()+1; i<=4 ; i++){
+                Row row = new Row();
+                row.setRowCode(i);
+                row.setRowType("false");
+                rows.add(row);
             }
         }
+        modelMap.put("rows", rows);
+        for(Row row: rows){
+            List<Cellar> cellars = new ArrayList<>();
+            if(row.getRowType().equals("false")){
+                for(int i = 1; i<=12; i++){
+
+                    Cellar cellar = new Cellar();
+                    cellar.setCellarCode(i);
+                    cellar.setCellarType("false");
+                    Sensor sensor = new Sensor();
+                    sensor.setAlarmLevel(0);
+                    cellar.setSensor(sensor);
+                    cellars.add(cellar);
+                    logger.info("填充项");
+                }
+            } else if(cellars.size() < 12 ){
+                cellars = cellarService.getCellarByRowDesc(row);
+                for(int i = cellars.size()+1; i<=12; i++){
+                    Cellar cellar = new Cellar();
+                    cellar.setCellarCode(i);
+                    cellar.setCellarType("false");
+                    Sensor sensor = new Sensor();
+                    sensor.setAlarmLevel(0);
+                    cellar.setSensor(sensor);
+                    cellars.add(cellar);
+                    logger.info("正常项");
+                }
+            }
+            Collections.sort(cellars, new Comparator<Cellar>() {
+                @Override
+                public int compare(Cellar o1, Cellar o2) {
+                    return o2.getCellarCode() - o1.getCellarCode();
+                }
+            });
+            cellarTree.put(row.getRowCode(), cellars);
+        }
         modelMap.put("cellarTree",cellarTree);
-        modelMap.put("sensors", sensors);
-        return "factory/cellarContainer";
+        return "winery/localPage/cellarContainer";
     }
 
     @RequestMapping(value = "/showCellarInfo",produces={"text/html;charset=UTF-8;","application/json;"})
@@ -417,7 +442,7 @@ public class NewFactoryController  {
         Gson timeHisGson = new Gson();
         String timeHisRetString = timeHisGson.toJson(hisCreatedTime);
         modelMap.put("hisCreatedTime", timeHisRetString);
-        return "factory/factoryCurveContainer";
+        return "winery/localPage/factoryCurveContainer";
     }
 
     @RequestMapping(value = "/showHisSensorCurve",produces={"text/html;charset=UTF-8;","application/json;"})

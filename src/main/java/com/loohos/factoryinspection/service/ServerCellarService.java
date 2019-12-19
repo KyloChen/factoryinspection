@@ -10,4 +10,6 @@ public interface ServerCellarService extends DAO<ServerCellar> {
     ServerCellar getServerCellarByLocalId(String localCellarId);
 
     List<ServerCellar> getCellarByRow(ServerRow row);
+
+    List<ServerCellar> getCellarByRowDesc(ServerRow row);
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Query;
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("JpaQlInspection")
@@ -56,12 +57,12 @@ public class CellarServiceImpl extends DaoSupport<Cellar> implements CellarServi
             if (cellars.size() > 0) {
                 return cellars;
             } else {
-                logger.info("本车间无垮记录！");
-                return null;
+                logger.info("1本车间无垮记录！");
+                return new ArrayList<>();
             }
         }catch (Exception e){
             e.printStackTrace();
-            return null;
+            return new ArrayList<>();
         }
     }
 }

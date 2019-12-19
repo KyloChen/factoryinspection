@@ -141,7 +141,7 @@ public class ServerSensorNodeServiceImpl extends DaoSupport<ServerSensorNode> im
     @Override
     public List<Date> getDatesBySensorAndRange(ServerSensor sensor, Date startDate, Date endDate) {
         Query query = em.createQuery("select o.createdTime from ServerSensorNode o where " +
-                "o.sensor = ?1 and " +
+                "o.serverSensor = ?1 and " +
                 "o.sensorType = 'TOP_TEMP_SENSOR' and " +
                 "o.createdTime between ?2 and ?3");
         query.setParameter(1, sensor);

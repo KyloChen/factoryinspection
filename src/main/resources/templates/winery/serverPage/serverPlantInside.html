@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <title>厂房地图</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="智能厂房管理系统">
+
+    <!--<link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinspection.css}">-->
+    <!--<link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinside.css}">-->
+    <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap-table.min.css}">
+
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery.timers-1.2.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/js/hls.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/ezuikit.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap-table.min.js}"></script>
+    <script>
+
+
+    var player, player1, player2;
+        $(document).ready(function() {
+            player = new EZUIKit.EZUIPlayer('myPlayer');
+            player1 = new EZUIKit.EZUIPlayer('myPlayer1');
+            player2 = new EZUIKit.EZUIPlayer('myPlayer2');
+        });
+        // var click = true;
+        // function showCameraContainer(){
+        //     var cameraContainer = document.getElementById('cameraContainer');
+        //     var cameraOperate = document.getElementById('cameraOperate');
+        //     if(click){
+        //         player.play();
+        //         player1.play();
+        //         player2.play();
+        //         cameraContainer.style.display = "block";
+        //         cameraOperate.innerText = "点击关闭";
+        //         click = false;
+        //     }else {
+        //         player.stop();
+        //         player1.stop();
+        //         player2.stop();
+        //         cameraContainer.style.display = "none";
+        //         cameraOperate.innerText = "查看视频";
+        //         click = true;
+        //     }
+        // }
+        function isEmpty(value){
+            if(value == null || value == "" || value == "undefined" || value == undefined || value == "null"){
+                return true;
+            }
+            else{
+                value = value.replace(/\s/g,"");
+                if(value == ""){
+                    return true;
+                }
+                return false;
+            }
+        }
+
+    function showCellarContainer(that) {
+        var pitId = $(that).attr('data-pitId');
+        var inputData = {};
+        console.log(pitId);
+        inputData.pitId = pitId;
+        $.ajax({
+            url: "/factoryinspection/server/showCellar",
+            method: "post",
+            data: inputData,
+            success: function (result) {
+                var divshow = $("#cellar-container");
+                divshow.text("");// 清空数据
+                divshow.append(result);
+                // $("#tableInfoContainer").html(result);
+            },
+            error: function () {
+                alert("error showing cellar container.");
+            }
+        });
+    }
+
+        function getThresholdTable() {
+            $.ajax({
+                method: "post",
+                url: "/factoryinspection/server/getThresholdTable",
+                dataType: "json",
+                success: function (result) {
+                    $('#table').bootstrapTable({
+                        data: result, //数据源
+                        striped: true, //表格显示条纹
+                        contentType:"application/x-www-form-urlencoded",
+                        dataType: 'json',
+                        // pagination: true, //是否分页
+                        // pageSize: 10, //每页显示的记录数
+                        // pageNumber:1, //当前第几页
+                        // search: true, //是否可以查询
+                        smartDisplay:false,
+                        // pageList: [5, 10, 15, 20, 25], //记录数可选列表
+                        columns: [{
+                            field: 'alarmLevel',
+                            title: '告警等级',
+                            align : 'center',
+                            valign: 'middle',
+                            formatNoMatches:function(){
+                                return "无阈值设置，请添加";
+                            },
+                            sortable:true
+                        },
+                            {
+                                field: 'alarmColor',
+                                title: '告警颜色',
+                                align : 'center',
+                                valign: 'middle',
+                                formatter: function operateFormatter(value, row, index){
+                                    if( value == "green"){
+                                        return "<span style='color:forestgreen;'>绿色正常预警</span>";
+                                    }else if(value == "orange"){
+                                        return "<span style='color:darkorange;'>橙色中度预警</span>";
+                                    }else if(value == "red"){
+                                        return "<span style='color:red;'>红色严重警告</span>";
+                                    }
+                                }
+                            },
+                            {
+                                field: 'minValue',
+                                title: '最小告警值',
+                                align : 'center',
+                                valign: 'middle'
+                            },
+                            {
+                                field: 'maxValue',
+                                title: '最大告警值',
+                                align : 'center',
+                                valign: 'middle'
+                            }
+                        ]
+                    })
+                }
+            });
+        }
+    </script>
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .main{
+            width: 100%;
+            height: 100%;
+        }
+        html,body{
+            width: 100%;
+            height: 100%;
+
+        }
+        .pit-container{
+            width: 50%;
+            height: 50%;
+            float: left;
+            border: 1px solid whitesmoke;
+        }
+        .cellar-container{
+            width: 50%;
+            height: 90%;
+            float: left;
+            border: 1px solid whitesmoke;
+        }
+        .camera-container{
+            width: 50%;
+            height: 40%;
+            float: left;
+            border: 1px solid whitesmoke;
+        }
+        .pit-container::-webkit-scrollbar {
+            display:none
+        }
+    </style>
+</head>
+<body style="background: #000000;">
+<input style="display: none" th:value="${plant}">
+
+<button id="setAlarmLevel" style="font-size: 12px; position: absolute; left: 0;" class="btn btn-primary" data-toggle="modal" data-target="#thresholdModel" onclick="getThresholdTable()">设备阈值</button>
+<button id="backMap" style="font-size: 12px; position: absolute; left: 80px;" class="btn btn-info" onclick="window.history.back()">返回地图</button>
+
+<div class="modal fade" id="thresholdModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="thresholdModalLabel">设备阈值</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="col-lg-12 col-md-12 col-xs-12 form-inline">
+                        <h4>当前阈值</h4>
+                        <table id="table">
+                        </table>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" >
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="float: right">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<div class="main">
+    <div style="width: 100%; color: #bc201a; font-size: 30px; text-align: center;">西凤酒业酒窖温度无线监控系统</div>
+    <div style="overflow: scroll" class="pit-container">
+        <h2 style="color: whitesmoke" th:text="${serverPlant.plantName}"></h2>
+        <div style="
+        display: inline-block;
+    width: 14.3%;
+    border: 1px white solid;
+    color: whitesmoke;
+    font-size: 20px;
+    text-align: center;
+    line-height: 98px;"
+             th:each="pit:${serverPits}" th:text="'第'+${pit.pitCode}+'垮'" th:attr="data-pitId=${pit.pitId}"
+        onclick="showCellarContainer(this)">
+        </div>
+    </div>
+    <div id="cellar-container" class="cellar-container" style="float: right;color: whitesmoke; font-size: 20px; text-align: center; ">
+        <div style="position: relative;width: 100%;height: 1px;border: 1px white solid;top: 55.5%;"></div>
+    </div>
+    <div id="camera-container" class="camera-container" style="float: left;color: whitesmoke; font-size: 20px; text-align: center; ">
+        <video id="myPlayer" class = "camera_player"
+        width="250px"
+        autoplay="false"
+        controls playsInline webkit-playsinline>
+            <source src="http://hls01open.ys7.com/openlive/085906b09e274eba90cf22093fa93a6f.m3u8" type="application/x-mpegURL" />
+        </video>
+    </div>
+</div>
+</body>
+</html>

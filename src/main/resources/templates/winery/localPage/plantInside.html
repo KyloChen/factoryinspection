@@ -74,7 +74,7 @@
                 //几个参数需要注意一下
                 type: "POST",//方法类型
                 contentType:"application/x-www-form-urlencoded",
-                url: "/factoryinspection/newFactory/addSensor" ,//url
+                url: "/factoryinspection/winery/addSensor" ,//url
                 data: inputData,
                 success: function (result) {
                     $("#saveTerminalBtn").attr("disabled", false);
@@ -94,7 +94,7 @@
         console.log(pitId);
         inputData.pitId = pitId;
         $.ajax({
-            url: "/factoryinspection/newFactory/showCellar",
+            url: "/factoryinspection/winery/showCellar",
             method: "post",
             data: inputData,
             success: function (result) {
@@ -114,7 +114,7 @@
             console.log(cellarId);
             inputData.cellarId = cellarId;
             $.ajax({
-                url: "/factoryinspection/newFactory/showCellarInfo",
+                url: "/factoryinspection/winery/showCellarInfo",
                 method: "post",
                 data: inputData,
                 success: function (result) {
@@ -131,7 +131,7 @@
         function getThresholdTable() {
             $.ajax({
                 method: "post",
-                url: "/factoryinspection/newFactory/getThresholdTable",
+                url: "/factoryinspection/winery/getThresholdTable",
                 dataType: "json",
                 success: function (result) {
                     $('#table').bootstrapTable({
@@ -212,7 +212,7 @@
                     //几个参数需要注意一下
                     type: "POST",//方法类型
                     contentType:"application/x-www-form-urlencoded",
-                    url: "/factoryinspection/newFactory/deleteThreshold" ,//url
+                    url: "/factoryinspection/winery/deleteThreshold" ,//url
                     data: inputData,
                     success: function (result) {
                         alert("success 成功! "  + JSON.stringify(result));
@@ -245,7 +245,7 @@
             //几个参数需要注意一下
             type: "POST",//方法类型
             contentType:"application/x-www-form-urlencoded",
-            url: "/factoryinspection/newFactory/setThreshold" ,//url
+            url: "/factoryinspection/winery/setThreshold" ,//url
             data: inputData,
             success: function (result) {
                 alert(JSON.stringify(result));
@@ -259,7 +259,7 @@
     }
     function refreshTable(){
         var opt = {
-            url: "/factoryinspection/newFactory/getThresholdTable",
+            url: "/factoryinspection/winery/getThresholdTable",
             silent: true
         };
         $("#table").bootstrapTable('refresh', opt);

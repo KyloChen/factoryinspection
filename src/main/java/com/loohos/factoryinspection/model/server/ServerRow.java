@@ -10,6 +10,7 @@ public class ServerRow {
     private ServerPit serverPit;
     private Set<ServerCellar> serverCellars;
     private String localRowId;
+    private String rowType = "true";
 
 
     @Id
@@ -57,5 +58,14 @@ public class ServerRow {
 
     public void setLocalRowId(String localRowId) {
         this.localRowId = localRowId;
+    }
+
+    @Column
+    public String getRowType() {
+        return rowType;
+    }
+
+    public void setRowType(String rowType) {
+        this.rowType = rowType;
     }
 }

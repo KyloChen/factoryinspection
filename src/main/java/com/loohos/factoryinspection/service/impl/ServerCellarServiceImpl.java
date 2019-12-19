@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Query;
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("JpaQlInspection")
@@ -47,6 +48,24 @@ public class ServerCellarServiceImpl extends DaoSupport<ServerCellar> implements
         }catch (Exception e){
             e.printStackTrace();
             return null;
+        }
+    }
+
+    @Override
+    public List<ServerCellar> getCellarByRowDesc(ServerRow row) {
+        Query query = em.createQuery("select o from ServerCellar o where o.serverRow = ?1 order by o.cellarCode desc");
+        query.setParameter(1, row);
+        try{
+            List<ServerCellar> cellars = query.getResultList();
+            if (cellars.size() > 0) {
+                return cellars;
+            } else {
+                logger.info("本server车间服务器无垮记录！");
+                return new ArrayList<>();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 }

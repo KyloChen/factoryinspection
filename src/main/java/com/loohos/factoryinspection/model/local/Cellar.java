@@ -9,6 +9,7 @@ public class Cellar {
     private int cellarCode;
     private Sensor sensor;
     private Row row;
+    private String cellarType = "true";
 
     @Id
     @Column(nullable = false)
@@ -46,5 +47,14 @@ public class Cellar {
 
     public void setRow(Row row) {
         this.row = row;
+    }
+
+    @Column
+    public String getCellarType() {
+        return cellarType;
+    }
+
+    public void setCellarType(String cellarType) {
+        this.cellarType = cellarType;
     }
 }
