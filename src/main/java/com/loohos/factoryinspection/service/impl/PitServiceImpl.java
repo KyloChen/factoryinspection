@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Query;
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("JpaQlInspection")
@@ -20,7 +21,8 @@ public class PitServiceImpl extends DaoSupport<Pit> implements PitService {
     Logger logger = LoggerFactory.getLogger(PitServiceImpl.class);
     @Override
     public List<Pit> getPitsByTeam(Team team) {
-        Query query = em.createQuery("select o from Pit o where o.team = ?1 order by o.pitCode asc");
+//        Query query = em.createQuery("select o from Pit o where o.team = ?1 order by o.pitCode asc");
+        Query query = em.createQuery("select o from Pit o where o.team = ?1");
         query.setParameter(1, team);
         try{
             List<Pit> pits = query.getResultList();
@@ -28,11 +30,11 @@ public class PitServiceImpl extends DaoSupport<Pit> implements PitService {
                 return pits;
             } else {
                 logger.info("本班组无垮记录！");
-                return null;
+                return new ArrayList<>();
             }
         }catch (Exception e){
             e.printStackTrace();
-            return null;
+            return new ArrayList<>();
         }
     }
 

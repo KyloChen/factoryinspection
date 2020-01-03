@@ -64,37 +64,37 @@ public class LocalDataAcquireComponent  {
 //    @Scheduled(cron = "10 */1 * * * ?")
     @Scheduled(cron = "30 */10 * * * ?")
     private void acquireSensorInfo() {
-        if(FLAG){
-            List<Sensor> sensors = sensorService.getScrollData().getResultList();
-            if(sensors.size() > 0){
-                logger.info("Start acquire sensor info......");
-            }else {
-                logger.info("无设备，添加后开始取值.");
-                return;
-            }
-        }else {
-            logger.info("The cycle is not terminate...");
-        }
-        FLAG = false;
         if (!machineType.equals("local")) {
             logger.info("The machineType is :" + machineType);
             return;
         }
-        logger.info(">>>>>>>>>>>>>start to a save local Sensor<<<<<<<<<<<<<<<");
-        if (commThread.isAlive()) {
-            getSensorInfo();
-            logger.info("thread is alive.");
-        } else {
-            boolean started = commThread.startCommPort(SerialPortType.COM3.getDescription(), 9600, 8, 1, 0);
-            if (started) {
-                commThread.start();
-                getSensorInfo();
-                logger.info("get info from a new commThread.");
-            } else {
-                getSensorInfo();
-                logger.info("get info from a started thread.");
+        if(FLAG){
+            List<Sensor> sensors = sensorService.getWorkingSensor();
+            if(sensors.size() > 0){
+                logger.info("Starting acquire sensor info......");
+                FLAG = false;
+                logger.info(">>>>>>>>>>>>>start to a save local Sensor<<<<<<<<<<<<<<<");
+                if (commThread.isAlive()) {
+                    getSensorInfo();
+                    logger.info("thread is alive.");
+                } else {
+                    boolean started = commThread.startCommPort(SerialPortType.COM3.getDescription(), 9600, 8, 1, 0);
+                    if (started) {
+                        commThread.start();
+                        getSensorInfo();
+                        logger.info("get info from a new commThread.");
+                    } else {
+                        getSensorInfo();
+                        logger.info("get info from a started thread.");
+                    }
+                }
+            }else {
+                logger.info("无设备，添加后开始取值.");
             }
+        }else {
+            logger.info("The cycle is not terminate...");
         }
+
     }
 
     private void getSensorInfo() {
@@ -103,14 +103,10 @@ public class LocalDataAcquireComponent  {
         final String rsPartitionSendCode = "00"; //分割发送码
         final String rsSufMessagefix = "AB031000000F1904"; //信息层
         final String rsSuffix = "CCCC";
-        List<Sensor> sensors = sensorService.getScrollData().getResultList();
+        List<Sensor> sensors = sensorService.getWorkingSensor();
         //遍历获取所有的终端信息
         for(Sensor sensor : sensors)
         {
-            if(sensor.getSensorWorkingType().getDescription().equals("SENSOR_IS_DELETE")){
-                logger.info("This sensor is deleted...");
-                continue;
-            }
             String strMessage = rsPrefix + sensor.getSensorCode() + rsPartitionSendCode + rsSufMessagefix + rsSuffix;
 //        strMessage = "7E380FB08FD08CC72300AB031000000F1904CCCC";
             byte[] byteMessage = HexUtils.hexStringToByte(strMessage.trim());
@@ -137,7 +133,7 @@ public class LocalDataAcquireComponent  {
 
                     topNode.setAlarmLevel(4);
                     topNode.setSensorType(SensorType.TOP_TEMP_SENSOR);
-                    topNode.setSensorValue(3276.7);
+                    topNode.setSensorValue(100);
                     topNode.setSensor(sensor);
                     topNode.setSensorNodeId(HttpClientUtils.getUUID());
                     topNode.setCreatedTime(new Date());
@@ -145,7 +141,7 @@ public class LocalDataAcquireComponent  {
                     SensorNode midNode = new SensorNode();
                     midNode.setAlarmLevel(4);
                     midNode.setSensorType(SensorType.MID_TEMP_SENSOR);
-                    midNode.setSensorValue(3276.7);
+                    midNode.setSensorValue(100);
                     midNode.setSensor(sensor);
                     midNode.setSensorNodeId(HttpClientUtils.getUUID());
                     midNode.setCreatedTime(new Date());
@@ -153,12 +149,15 @@ public class LocalDataAcquireComponent  {
                     SensorNode botNode = new SensorNode();
                     botNode.setAlarmLevel(4);
                     botNode.setSensorType(SensorType.BOT_TEMP_SENSOR);
-                    botNode.setSensorValue(3276.7);
+                    botNode.setSensorValue(100);
                     botNode.setSensor(sensor);
                     botNode.setSensorNodeId(HttpClientUtils.getUUID());
                     botNode.setCreatedTime(new Date());
 
                     sensor.setAlarmLevel(4);
+                    sensor.setCurTopNodeValue(100);
+                    sensor.setCurMidNodeValue(100);
+                    sensor.setCurBotNodeValue(100);
                     sensorService.update(sensor);
                     sensorNodeService.save(topNode);
                     sensorNodeService.save(midNode);
@@ -168,21 +167,21 @@ public class LocalDataAcquireComponent  {
                     String retInfo = "";
                     LocalToServerSensorNodes nodes = new LocalToServerSensorNodes();
                     ServerSensorNode topServerNode = new ServerSensorNode();
-                    topServerNode.setSensorValue(3276.7);
+                    topServerNode.setSensorValue(100);
                     topServerNode.setSensorNodeId(HttpClientUtils.getUUID());
                     topServerNode.setCreatedTime(new Date());
                     nodes.setTopNode(topServerNode);
 
                     ServerSensorNode midServerNode = new ServerSensorNode();
                     midServerNode.setAlarmLevel(4);
-                    midServerNode.setSensorValue(3276.7);
+                    midServerNode.setSensorValue(100);
                     midServerNode.setSensorNodeId(HttpClientUtils.getUUID());
                     midServerNode.setCreatedTime(new Date());
                     nodes.setMidNode(midServerNode);
 
                     ServerSensorNode botServerNode = new ServerSensorNode();
                     botServerNode.setAlarmLevel(4);
-                    botServerNode.setSensorValue(3276.7);
+                    botServerNode.setSensorValue(100);
                     botServerNode.setSensorNodeId(HttpClientUtils.getUUID());
                     botServerNode.setCreatedTime(new Date());
                     nodes.setBotNode(botServerNode);
@@ -232,11 +231,11 @@ public class LocalDataAcquireComponent  {
                 int midAlarmLevel = configAlarmLevelService.getIsOrNotUnderRange(midTemp1);
                 int botAlarmLevel = configAlarmLevelService.getIsOrNotUnderRange(botTemp1);
                 logger.info("Start acquiring sensor info....");
-                if(topTemp1 == 3276.7 || topTemp1 == 0){
+                if(topTemp1 >= 100 || topTemp1 == 0){
                     topAlarmLevel = 4;
                     topNode.setAlarmLevel(topAlarmLevel);
                     topNode.setSensorType(SensorType.TOP_TEMP_SENSOR);
-                    topNode.setSensorValue(3276.7);
+                    topNode.setSensorValue(100);
                     topNode.setSensor(sensor);
                     topNode.setSensorNodeId(HttpClientUtils.getUUID());
                     topNode.setCreatedTime(new Date());
@@ -244,7 +243,7 @@ public class LocalDataAcquireComponent  {
                     logger.info("Top sensor was ANOMALY...");
 
                     topServerNode.setAlarmLevel(topAlarmLevel);
-                    topServerNode.setSensorValue(3276.7);
+                    topServerNode.setSensorValue(100);
                     topServerNode.setSensorNodeId(HttpClientUtils.getUUID());
                     topServerNode.setCreatedTime(new Date());
                 }else {
@@ -262,11 +261,11 @@ public class LocalDataAcquireComponent  {
                     topServerNode.setCreatedTime(new Date());
                     topServerNode.setAlarmLevel(topAlarmLevel);
                 }
-                if(midTemp1 == 3276.7 || midTemp1 == 0){
+                if(midTemp1 >= 100 || midTemp1 == 0){
                     midAlarmLevel = 4;
                     midNode.setAlarmLevel(midAlarmLevel);
                     midNode.setSensorType(SensorType.MID_TEMP_SENSOR);
-                    midNode.setSensorValue(3276.7);
+                    midNode.setSensorValue(100);
                     midNode.setSensor(sensor);
                     midNode.setSensorNodeId(HttpClientUtils.getUUID());
                     midNode.setCreatedTime(new Date());
@@ -274,7 +273,7 @@ public class LocalDataAcquireComponent  {
                     logger.info("Mid sensor was ANOMALY...");
 
                     midServerNode.setAlarmLevel(midAlarmLevel);
-                    midServerNode.setSensorValue(3276.7);
+                    midServerNode.setSensorValue(100);
                     midServerNode.setSensorNodeId(HttpClientUtils.getUUID());
                     midServerNode.setCreatedTime(new Date());
                 }else {
@@ -292,11 +291,11 @@ public class LocalDataAcquireComponent  {
                     midServerNode.setCreatedTime(new Date());
                     midServerNode.setAlarmLevel(midAlarmLevel);
                 }
-                if(botTemp1 == 3276.7 || botTemp1 == 0){
+                if(botTemp1 >= 100 || botTemp1 == 0){
                     botAlarmLevel = 4;
                     botNode.setAlarmLevel(botAlarmLevel);
                     botNode.setSensorType(SensorType.BOT_TEMP_SENSOR);
-                    botNode.setSensorValue(3276.7);
+                    botNode.setSensorValue(100);
                     botNode.setSensor(sensor);
                     botNode.setSensorNodeId(HttpClientUtils.getUUID());
                     botNode.setCreatedTime(new Date());
@@ -304,7 +303,7 @@ public class LocalDataAcquireComponent  {
                     logger.info("Bot sensor was ANOMALY...");
 
                     botServerNode.setAlarmLevel(botAlarmLevel);
-                    botServerNode.setSensorValue(3276.7);
+                    botServerNode.setSensorValue(100);
                     botServerNode.setCreatedTime(new Date());
                     botServerNode.setSensorNodeId(HttpClientUtils.getUUID());
                 }else {
@@ -324,6 +323,9 @@ public class LocalDataAcquireComponent  {
                 }
                 int sensorAlarmLevel = CommonUtils.comparingMaxAlarmLevel(topAlarmLevel,midAlarmLevel,botAlarmLevel);
                 sensor.setAlarmLevel(sensorAlarmLevel);
+                sensor.setCurTopNodeValue(topNode.getSensorValue());
+                sensor.setCurMidNodeValue(midNode.getSensorValue());
+                sensor.setCurBotNodeValue(botNode.getSensorValue());
                 sensorService.update(sensor);
                 logger.info("Acquired sensor info success.....");
                 //本次循环取值结束 开始上传内容至服务器
@@ -351,7 +353,7 @@ public class LocalDataAcquireComponent  {
             }
             }
         logger.info("The cycle is terminate.....");
-        //重置标识 准备开始下一次循环
+        //重置标识 准备开始下一次循环 TODO 可设置线程休眠时间
         FLAG = true;
     }
 

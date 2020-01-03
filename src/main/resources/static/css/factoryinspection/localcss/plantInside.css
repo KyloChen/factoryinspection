@@ -1,0 +1,89 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+html,body{
+    width: 100%;
+    height: 100%;
+
+}
+.main{
+    width: 100%;
+    height: 100%;
+}
+/*button*/
+#addTerminal{
+    font-size: 12px;
+    position: absolute;
+    left: 0;
+}
+#setAlarmLevel{
+    font-size: 12px;
+    position: absolute;
+    left: 80px;
+}
+#allSensor{
+     font-size: 12px;
+     position: absolute;
+     left: 160px;
+ }
+#backMap{
+    font-size: 12px;
+    position: absolute;
+    left: 240px;
+}
+
+/*container*/
+.main #main-title{
+    width: 100%;
+    color: #bc201a;
+    font-size: 30px;
+    text-align: center;
+}
+.main .pit-container{
+    width: 40%;
+    height: 50%;
+    float: left;
+    border: 1px solid whitesmoke;
+    overflow: scroll;padding: 0 4%;
+}
+
+.main .pit-container .pit-container-div{
+    text-align: center;
+    display: inline-block;
+    border: 1px whitesmoke solid;
+    padding: 6% 4%;
+}
+
+.main .pit-container .pit-container-div span{
+    font-size: 20px;
+    text-align: center;
+    cursor: pointer;
+}
+.main #cellar-container{
+    float: right;
+    color: whitesmoke;
+    font-size: 20px;
+    text-align: center;
+    width: 60%;
+    height: 90%;
+    border: 1px solid whitesmoke;
+}
+.main #camera-container{
+    width: 40%;
+    height: 40%;
+    float: left;
+    border: 1px solid whitesmoke;
+    color: whitesmoke;
+    font-size: 20px;
+    text-align: center;
+}
+.vertical-li{
+    list-style-image: none;
+    list-style-type: none;
+    float: left;
+}
+.pit-container::-webkit-scrollbar {
+    display:none
+}

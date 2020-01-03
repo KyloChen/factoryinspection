@@ -34,7 +34,8 @@ public class ServerRowServiceImpl extends DaoSupport<ServerRow> implements Serve
 
     @Override
     public List<ServerRow> getRowByPit(ServerPit pit) {
-        Query query = em.createQuery("select o from ServerRow o where o.serverPit = ?1 order by o.rowCode asc");
+//        Query query = em.createQuery("select o from ServerRow o where o.serverPit = ?1 order by o.rowCode asc");
+        Query query = em.createQuery("select o from ServerRow o where o.serverPit = ?1");
         query.setParameter(1, pit);
         try{
             List<ServerRow> rows = query.getResultList();

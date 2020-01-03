@@ -1,81 +1,37 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <title>窖区图示</title>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="智能厂房管理系统">
-    <meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,minimum-scale=1.0,user-scalable=0" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="format-detection" content="telephone=no" />
 
-    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/factoryinspection.css}">
-    <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
     <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
-    <link rel="stylesheet" th:href="@{/static/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/localcss/factoryCurveContainer.css}">
 
     <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
-    <script type="text/javascript" th:src="@{/static/scripts/incubator-echarts-4.5.0/dist/echarts.js}"></script>
-    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery.timers-1.2.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/echarts.min.js}"></script>
     <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
-    <script type="text/javascript" th:src="@{/static/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js}"></script>
-    <script type="text/javascript" th:src="@{/static/bootstrap-datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js}"></script>
-    <script type="text/javascript" th:src="@{/static/scripts/factoryinspection/factoryinspection.js}"></script>
-
-    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/js/hls.js}"></script>
-    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/ezuikit.js}"></script>
-
 </head>
-<body style="background: black">
-<div id="mainDiv" style="padding: 0 21%">
-    <div id="dateTimeSelector" class="form-inline" style="display: none">
-        <div class="input-group date form_date mr10">
-            <input class="form-control" style="max-width: 100px" placeholder="开始日期" readonly="readonly" type="text" value="" id="startDate">
+<body>
+<div class="div-container">
+     <div id="mainDiv">
+        <div id="curveContainer">
+            <div id="main" style="width: 680px;height: 340px;" th:attr="data-sensorId=${sensorId}"
+                 onmouseover="showAlertInfo('login-box');" onmouseleave="hideAlertInfo('login-box');"
+                 onclick="showDetail(this)">
+            </div>
         </div>
-        <div class="input-group date form_date">
-            <input class="form-control" style="max-width: 100px" placeholder="结束日期" readonly="readonly" type="text" value="" id="endDate">
-        </div>
-        <button class="btn btn-group-xs btn-primary" id="dateRangeQueryBtn" onclick="queryByDateRange()">查询</button>
-        <button class="btn btn-group-xs btn-primary" id="dateRangeResetBtn" onclick="resetTimeRange()">重置</button>
+         <div id="login-box">点击图表查看详情</div>
+         <input style="display: none" type="text" th:value="${sensorId}" id="sensorId">
     </div>
-    <div style="width: 100%; height: auto; text-align: center">
-        <div id="main" style="width: 440px;height:270px;"></div>
-    </div>
-    <input style="display: none;"  type="text" th:value="${sensorId}" id="sensorId">
-    <button class="btn btn-success" onclick="dailyLine()">今日趋势</button>
-    <button class="btn btn-primary" onclick="historyLine()">历史记录</button>
 </div>
 
 <script type="text/javascript" th:inline="javascript">
-    $(function(){
-        $('#startDate').datetimepicker({
-            language:"zh-CN", //汉化
-            todayBtn : "true",  //显示今天按钮
-            autoclose : true,   //选择日期后自动关闭日期选择框
-            format : "yyyy-mm-dd",
-            todayHighlight : true,   //当天高亮显示
-            minView: "month",   //不显示时分秒
-            showMeridian: 1,
-            pickerPosition: "bottom-left",
-            startDate:new Date(new Date()-1000 * 60 * 60 * 24 * 365),  //只显示一年的日期365天
-            endDate : new Date()
-        }).on('click',function(e){
-            $("#startDate").datetimepicker("setEndDate", $("#endDate").val());
-        });
-        $('#endDate').datetimepicker({
-            language:"zh-CN",
-            todayBtn : "true",
-            autoclose : true,
-            format : "yyyy-mm-dd",
-            todayHighlight : true,
-            minView: "month",
-            pickerPosition: "bottom-left",
-            startDate:new Date(new Date()-1000 * 60 * 60 * 24 * 365),
-            endDate : new Date()
-        }).on('click',function(e){
-            $("#endDate").datetimepicker("setStartDate", $("#startDate").val());
-        });
-    });
     /*<![CDATA[*/
     var myChart = echarts.init(document.getElementById('main'),'dark');
     var dates = JSON.parse([[${createdTimes}]]);
@@ -98,32 +54,16 @@
             }
         },
         title: {
-            text: '窖藏温度',
+            text: '今日窖藏温度',
             subtext:''
         }, //图表左上方简介
         legend: {
             data:['上层温度值', '中层温度值', '底层温度值']
         }, //显示曲线简介
-
         tooltip: {
             trigger: 'axis',
             axisPointer: {
                 type: 'cross'
-            }
-        },
-        toolbox: {
-            show: true,
-            feature: {
-                dataZoom: {
-                    show: true,
-                    yAxisIndex: 'none'
-                },
-                dataView: {
-                    show: true,
-                    readOnly: false},
-                magicType: {type: ['line', 'bar']},
-                restore: {show: true},
-                saveAsImage: {show: true}
             }
         },
         xAxis:  {
@@ -138,12 +78,11 @@
                     var date = new Date(value);
                     var texts = [date.getHours(), date.getMinutes()];
                     if (index === 0) {
-                        console.log(texts.unshift((date.getMonth() + 1), date.getDate()));
+                        texts.unshift(date.getFullYear()+"."+(date.getMonth() + 1)+"."+date.getDate());
                     }
                     return texts.join(':');
                 }
             }
-
         },
         yAxis: {
             name: "温度值",
@@ -155,7 +94,6 @@
                 snap: true
             }
         },
-
         series: [
             {
                 name:'上层温度值',
@@ -179,240 +117,10 @@
         ]
 
     };
-    var hisCreatedTime = JSON.parse([[${hisCreatedTime}]])
-    var topHisTemps = JSON.parse([[${hisTopTemps}]]);
-    var midHisTemps = JSON.parse([[${hisMidTemps}]]);
-    var botHisTemps = JSON.parse([[${hisBotTemps}]]);
-    // 指定图表的配置项和数据
-    var historyOption = {
-        noDataLoadingOption: {
-            text: '暂无数据',
-            effect: 'bubble',
-            effectOption: {
-                effect: {
-                    n: 0
-                }
-            }
-        },
-        title: {
-            text: '窖藏温度',
-            subtext:''
-        }, //图表左上方简介
-        legend: {
-            data:['上层温度值', '中层温度值', '底层温度值']
-        }, //显示曲线简介
 
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'cross'
-            }
-        },
-        toolbox: {
-            show: true,
-            feature: {
-                dataZoom: {
-                    show: true,
-                    yAxisIndex: 'none'
-                },
-                dataView: {
-                    show: true,
-                    readOnly: false},
-                magicType: {type: ['line', 'bar']},
-                restore: {show: true},
-                saveAsImage: {show: true}
-            }
-        },
-        xAxis:  {
-            name: "时间(时：分)",
-            type: 'category',
-            boundaryGap: false,
-            data: hisCreatedTime,
-            axisLabel: {
-                //处理时间格式
-                formatter: function (value, index) {
-                    var date = new Date(value);
-                    var texts = [date.getFullYear(), (date.getMonth() + 1), date.getDate()+ "," +date.getHours() + ":" + date.getMinutes()];
-                    if (index === 0) {
-                        texts.unshift(date.getFullYear());
-                    }
-                    return texts.join('/');
-                }
-            }
-
-        },
-        yAxis: {
-            name: "温度值",
-            type: 'value',
-            axisLabel: {
-                formatter:'{value} °C'
-            },
-            axisPointer: {
-                snap: true
-            }
-        },
-
-        series: [
-            {
-                name:'上层温度值',
-                type:'line',
-                smooth: true,
-                data: topHisTemps
-            },
-            {
-                name:'中层温度值',
-                type:'line',
-                smooth: true,
-                connectNulls: true ,//连接数据为null的前后点
-                data: midHisTemps
-            },
-            {
-                name:'底层温度值',
-                type:'line',
-                smooth: true,
-                data: botHisTemps
-            }
-        ]
-
-    };
     // 使用刚指定的配置项和数据显示图表。
     myChart.setOption(dailyOption);
-    function historyLine(){
-        $('#dateTimeSelector').css("display","block");
-        $('#dateTimeQueryBtn').css("display","block");
-        myChart.clear();
-        myChart.hideLoading();
-        myChart.setOption(historyOption);
-    }
-
-    function dailyLine() {
-        $('#dateTimeSelector').css("display","none");
-        $('#dateTimeQueryBtn').css("display","none");
-        myChart.clear();
-        myChart.hideLoading();
-        myChart.setOption(dailyOption);
-    }
-
-    function queryByDateRange() {
-        var startDate = $('#startDate').val();
-        var endDate = $('#endDate').val();
-        var sensorId = $('#sensorId').val();
-        var inputData = {};
-        if(isEmpty(startDate) || isEmpty(endDate)){
-            alert("请输入正确的日期范围！");
-            return;
-        }
-        console.log(startDate + " , " + endDate + " , " + sensorId);
-        inputData.startDate = startDate;
-        inputData.endDate = endDate;
-        inputData.sensorId = sensorId;
-        console.log(inputData);
-        $.ajax({
-            type: "POST",//方法类型
-            dataType: "json",//预期服务器返回的数据类型
-            url: "/factoryinspection/winery/queryByDateRange" ,//url
-            data: inputData,
-            success: function (result) {
-                console.log(result + "aaa");
-                // var obj = JSON.parse(result);
-                // console.log(obj);
-                var historyQueryOption = {
-                    noDataLoadingOption: {
-                        text: '暂无数据',
-                        effect: 'bubble',
-                        effectOption: {
-                            effect: {
-                                n: 0
-                            }
-                        }
-                    },
-                    title: {
-                        text: '历史窖藏温度',
-                        subtext: ''
-                    },
-                    legend: {
-                        data:['上层温度值', '中层温度值', '底层温度值']
-                    },
-                    tooltip: {
-                        trigger: 'axis',
-                        axisPointer: {
-                            type: 'cross'
-                        }
-                    },
-                    toolbox: {
-                        show: true,
-                        feature: {
-                            dataZoom: {
-                                show: true,
-                                yAxisIndex: 'none'
-                            },
-                            dataView: {
-                                show: true,
-                                readOnly: false},
-                            magicType: {type: ['line', 'bar']},
-                            restore: {show: true},
-                            saveAsImage: {show: true}
-                        }
-                    },
-                    xAxis:  {
-                        type: 'category',
-                        boundaryGap: false,
-                        data: result.rangeCreatedDate,
-                        axisLabel: {
-                            formatter: function (value, index) {
-                                // 格式化成月/日，只在第一个刻度显示年份
-                                var date = new Date(value);
-                                var texts = [date.getFullYear(), (date.getMonth() + 1), date.getDate()+ "," +date.getHours() + ":" + date.getMinutes()];
-                                if (index === 0) {
-                                    texts.unshift(date.getFullYear());
-                                }
-                                return texts.join('/');
-                            }
-                        }
-                    },
-                    yAxis: {
-                        type: 'value',
-                        axisLabel: {
-                            formatter:'{value} °C'
-                        },
-                        axisPointer: {
-                            snap: true
-                        }
-                    },
-
-                    series: [
-                        {
-                            name:'上层温度值',
-                            type:'line',
-                            smooth: true,
-                            data: result.rangeTopTemp
-                        },
-                        {
-                            name:'中层温度值',
-                            type:'line',
-                            smooth: true,
-                            connectNulls: true ,//连接数据为null的前后点
-                            data: result.rangeMidTemp
-                        },
-                        {
-                            name:'底层温度值',
-                            type:'line',
-                            smooth: true,
-                            data: result.rangeBotTemp
-                        }
-                    ]
-                };
-                myChart.clear();
-                myChart.hideLoading();
-                myChart.setOption(historyQueryOption);
-            },
-            error : function(result) {
-                alert("此时段无温度数据");
-            }
-        })
-    }
-
 </script>
-<script type="text/javascript" th:src="@{/static/scripts/purple-passion.js}"></script>
+<script type="text/javascript" th:src="@{/static/scripts/factoryinspection/localScripts/factoryDailyCurve.js}"></script>
 </body>
 </html>

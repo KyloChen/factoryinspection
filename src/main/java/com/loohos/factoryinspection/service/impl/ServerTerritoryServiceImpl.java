@@ -34,7 +34,8 @@ public class ServerTerritoryServiceImpl extends DaoSupport<ServerTerritory> impl
 
     @Override
     public List<ServerTerritory> getTerritoriesByPlant(ServerPlant serverPlant) {
-        Query query = em.createQuery("select o from ServerTerritory o where o.serverPlant = ?1 order by o.territoryCode asc ");
+//        Query query = em.createQuery("select o from ServerTerritory o where o.serverPlant = ?1 order by o.territoryCode asc ");
+        Query query = em.createQuery("select o from ServerTerritory o where o.serverPlant = ?1");
         query.setParameter(1, serverPlant);
         try{
             List<ServerTerritory> territorySet = query.getResultList();

@@ -32,8 +32,8 @@ public class ServerTeamServiceImpl extends DaoSupport<ServerTeam> implements Ser
 
     @Override
     public List<ServerTeam> getTeamsByTerritory(ServerTerritory territory) {
-
-        Query query = em.createQuery("select o from ServerTeam o where o.serverTerritory = ?1 order by o.teamCode asc");
+//        Query query = em.createQuery("select o from ServerTeam o where o.serverTerritory = ?1 order by o.teamCode asc");
+        Query query = em.createQuery("select o from ServerTeam o where o.serverTerritory = ?1");
         query.setParameter(1, territory);
         try{
             List<ServerTeam> teams = query.getResultList();

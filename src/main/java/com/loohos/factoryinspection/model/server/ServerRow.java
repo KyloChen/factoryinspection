@@ -8,7 +8,6 @@ public class ServerRow {
     private String rowId;
     private int rowCode;
     private ServerPit serverPit;
-    private Set<ServerCellar> serverCellars;
     private String localRowId;
     private String rowType = "true";
 
@@ -40,15 +39,6 @@ public class ServerRow {
 
     public void setServerPit(ServerPit serverPit) {
         this.serverPit = serverPit;
-    }
-
-    @OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "serverRow")
-    public Set<ServerCellar> getServerCellars() {
-        return serverCellars;
-    }
-
-    public void setServerCellars(Set<ServerCellar> serverCellars) {
-        this.serverCellars = serverCellars;
     }
 
     @Column

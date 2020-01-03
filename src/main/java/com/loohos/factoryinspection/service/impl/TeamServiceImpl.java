@@ -16,7 +16,8 @@ import java.util.List;
 public class TeamServiceImpl extends DaoSupport<Team> implements TeamService  {
     @Override
     public List<Team> getTeamsByTerritory(Territory territory2) {
-        Query query = em.createQuery("select o from Team o where o.territory = ?1 order by o.teamCode asc ");
+//        Query query = em.createQuery("select o from Team o where o.territory = ?1 order by o.teamCode asc ");
+        Query query = em.createQuery("select o from Team o where o.territory = ?1");
         query.setParameter(1, territory2);
         try{
             List<Team> teams = query.getResultList();

@@ -11,8 +11,6 @@ public class Plant {
     private int clientX;
     private int clientY;
     private int alarmLevel;
-    private Set<Territory> territories;
-//    private Set<Pit> pits;
 
 
     @Id
@@ -33,15 +31,6 @@ public class Plant {
     public void setPlantCode(int plantCode) {
         this.plantCode = plantCode;
     }
-
-//    @OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "plant")
-//    public Set<Pit> getPits() {
-//        return pits;
-//    }
-//
-//    public void setPits(Set<Pit> pits) {
-//        this.pits = pits;
-//    }
 
     @Column
     public int getClientX() {
@@ -79,12 +68,5 @@ public class Plant {
         this.plantName = plantName;
     }
 
-    @OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "plant")
-    public Set<Territory> getTerritories() {
-        return territories;
-    }
 
-    public void setTerritories(Set<Territory> territories) {
-        this.territories = territories;
-    }
 }

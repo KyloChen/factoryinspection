@@ -15,4 +15,7 @@ public interface SensorService extends DAO<Sensor>{
     Sensor getDeleteSensorByCellar(Cellar cellar,SensorWorkingType sensorWorkingType);
 
     Sensor getBoolByIsWorkingAndSensorCode(String sensorCode,SensorWorkingType sensorWorkingType);
+
+    List<Sensor> getWorkingSensor();
+
 }

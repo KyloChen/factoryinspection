@@ -8,7 +8,6 @@ public class Row {
     private String rowId;
     private int rowCode;
     private Pit pit;
-    private Set<Cellar> cellars;
     private String rowType = "true";
 
     @Id
@@ -38,15 +37,6 @@ public class Row {
 
     public void setPit(Pit pit) {
         this.pit = pit;
-    }
-
-    @OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "row")
-    public Set<Cellar> getCellars() {
-        return cellars;
-    }
-
-    public void setCellars(Set<Cellar> cellars) {
-        this.cellars = cellars;
     }
 
     @Column

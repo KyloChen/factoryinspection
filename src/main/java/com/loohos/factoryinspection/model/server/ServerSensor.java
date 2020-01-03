@@ -18,9 +18,11 @@ public class ServerSensor {
     private int workingHours;
     private String batteryState = "00";
     private int alarmLevel;
+    private double curTopNodeValue = 100;
+    private double curMidNodeValue = 100;
+    private double curBotNodeValue = 100;
     private SensorWorkingType sensorWorkingType;
     private ServerCellar serverCellar;
-    private Set<ServerSensorNode> sensorNodeSet;
     private String localSensorId;
     private String savingType;
 
@@ -115,7 +117,35 @@ public class ServerSensor {
         this.alarmLevel = alarmLevel;
     }
 
-    @Column(nullable = false)
+    @Column
+    public double getCurTopNodeValue() {
+        return curTopNodeValue;
+    }
+
+    public void setCurTopNodeValue(double curTopNodeValue) {
+        this.curTopNodeValue = curTopNodeValue;
+    }
+
+    @Column
+    public double getCurMidNodeValue() {
+        return curMidNodeValue;
+    }
+
+    public void setCurMidNodeValue(double curMidNodeValue) {
+        this.curMidNodeValue = curMidNodeValue;
+    }
+
+    @Column
+    public double getCurBotNodeValue() {
+        return curBotNodeValue;
+    }
+
+    public void setCurBotNodeValue(double curBotNodeValue) {
+        this.curBotNodeValue = curBotNodeValue;
+    }
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(length = 40, nullable = true)
     public SensorWorkingType getSensorWorkingType() {
         return sensorWorkingType;
     }
@@ -132,15 +162,6 @@ public class ServerSensor {
 
     public void setServerCellar(ServerCellar serverCellar) {
         this.serverCellar = serverCellar;
-    }
-
-    @OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "serverSensor")
-    public Set<ServerSensorNode> getSensorNodeSet() {
-        return sensorNodeSet;
-    }
-
-    public void setSensorNodeSet(Set<ServerSensorNode> sensorNodeSet) {
-        this.sensorNodeSet = sensorNodeSet;
     }
 
     @Column

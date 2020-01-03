@@ -4,7 +4,7 @@ public enum SensorWorkingType {
     SENSOR_IS_ANOMALY{
         public String getDescription(){return "设备异常";}
     },
-    SENSOR_IS_DELETE{
+    SENSOR_WAS_DELETED{
         public String getDescription(){return "已删除";}
     },
     SENSOR_IS_WORKING{

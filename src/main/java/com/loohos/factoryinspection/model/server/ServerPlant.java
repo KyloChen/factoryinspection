@@ -11,7 +11,6 @@ public class ServerPlant {
     private double clientX;
     private double clientY;
     private int alarmLevel;
-    private Set<ServerTerritory> territories;
     private String localPlantId;
 
     @Id
@@ -67,17 +66,6 @@ public class ServerPlant {
 
     public void setAlarmLevel(int alarmLevel) {
         this.alarmLevel = alarmLevel;
-    }
-
-    @OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "serverPlant")
-    public Set<ServerTerritory> getTerritories() {
-        return territories;
-    }
-
-    public void setTerritories(Set<ServerTerritory> territories) {
-
-
-        this.territories = territories;
     }
 
     @Column

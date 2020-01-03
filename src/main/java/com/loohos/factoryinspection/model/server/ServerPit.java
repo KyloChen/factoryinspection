@@ -8,8 +8,8 @@ public class ServerPit {
     private String pitId;
     private int pitCode;
     private ServerTeam serverTeam;
-    private Set<ServerRow> serverRows;
     private String localPitId;
+    private String pitType = "true";
 
     @Id
     @Column
@@ -40,17 +40,6 @@ public class ServerPit {
         this.serverTeam = serverTeam;
     }
 
-    @OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "serverPit")
-    public Set<ServerRow> getServerRows() {
-        return serverRows;
-    }
-
-    public void setServerRows(Set<ServerRow> serverRows) {
-        this.serverRows = serverRows;
-    }
-
-
-
     @Column
     public String getLocalPitId() {
         return localPitId;
@@ -58,5 +47,14 @@ public class ServerPit {
 
     public void setLocalPitId(String localPitId) {
         this.localPitId = localPitId;
+    }
+
+    @Column
+    public String getPitType() {
+        return pitType;
+    }
+
+    public void setPitType(String pitType) {
+        this.pitType = pitType;
     }
 }

@@ -17,7 +17,8 @@ import java.util.Set;
 public class TerritoryServiceImpl extends DaoSupport<Territory> implements TerritoryService{
     @Override
     public List<Territory> getTerritoriesByPlant(Plant plant1) {
-        Query query = em.createQuery("select o from Territory o where o.plant = ?1 order by o.territoryCode asc ");
+//        Query query = em.createQuery("select o from Territory o where o.plant = ?1 order by o.territoryCode asc ");
+        Query query = em.createQuery("select o from Territory o where o.plant = ?1");
         query.setParameter(1, plant1);
         try{
             List<Territory> territorySet = query.getResultList();

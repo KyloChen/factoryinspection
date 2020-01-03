@@ -11,7 +11,7 @@ public class SensorNode {
     private Date createdTime;
     private double sensorValue;
     private SensorType sensorType;
-    private int alarmLevel = 3;
+    private int alarmLevel = 4;
     private Sensor sensor;
 
     @Id

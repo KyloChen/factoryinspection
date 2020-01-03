@@ -8,7 +8,6 @@ public class Team {
     private String teamId;
     private int teamCode;
     private Territory territory;
-    private Set<Pit> pits;
 
     @Id
     @Column
@@ -39,12 +38,4 @@ public class Team {
         this.territory = territory;
     }
 
-    @OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "team")
-    public Set<Pit> getPits() {
-        return pits;
-    }
-
-    public void setPits(Set<Pit> pits) {
-        this.pits = pits;
-    }
 }

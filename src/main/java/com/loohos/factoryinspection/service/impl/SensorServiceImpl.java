@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Query;
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("JpaQlInspection")
@@ -53,6 +54,23 @@ public class SensorServiceImpl extends DaoSupport<Sensor> implements SensorServi
             return (Sensor) query.getSingleResult();
         }catch (Exception e){
             return null;
+        }
+    }
+
+    @Override
+    public List<Sensor> getWorkingSensor() {
+        Query query = em.createQuery("select o from Sensor o where o.sensorWorkingType = ?1");
+        query.setParameter(1, SensorWorkingType.SENSOR_IS_WORKING);
+        try{
+            List<Sensor> sensors = query.getResultList();
+            if (sensors.size() > 0) {
+                return sensors;
+            } else {
+                return new ArrayList<>();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 }

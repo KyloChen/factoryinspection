@@ -2,189 +2,26 @@
 <html xmlns:th="http://www.thymeleaf.org" >
 <head>
     <title>厂房地图</title>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="智能厂房管理系统">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,minimum-scale=1.0,user-scalable=0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="format-detection" content="telephone=no" />
 
     <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
     <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/localcss/plantMap.css}">
 
     <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
-    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery.timers-1.2.js}"></script>
     <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
-    <script type="text/javascript" th:src="@{/static/scripts/factoryinspection/factoryinspection.js}"></script>
-
-    <script type="text/javascript">
-
-        var pathname = window.location.pathname;
-        var projectName = pathname.substring(0,pathname.substr(1).indexOf('/') + 1);
-        console.log("pathname: " + pathname + " , projectName: " + projectName);
-        $(document).ready(function () {
-            $(".plant").each(function (index,element){
-                var alarmLevel = $(this).attr("alarmLevel");
-                var clientX = $(this).attr("clientX");
-                var clientY = $(this).attr("clientY");
-                var plantId = $(this).attr("plantId");
-                console.log(typeof(clientX) + " , " + typeof(clientY) +"aaa");
-                $(this).css("left", parseInt(clientX));
-                $(this).css("top", parseInt(clientY));
-                if(alarmLevel == 1){
-                    $(this).attr("src", "../static/img/Marker-blue.png");
-                    console.log("blue");
-                }else if(alarmLevel == 2){
-                    $(this).attr("src", "../static/img/Marker-yellow.png");
-                    console.log("yellow");
-                }else if(alarmLevel == 3){
-                    $(this).attr("src", "../static/img/Marker-orange.png");
-                    $(this).everyTime("0.5s", function () {
-                        if(element.style.display == "block"){
-                            element.style.display = "none"
-                        }else {
-                            element.style.display = "block"
-                        }
-                    });
-                    console.log("orange");
-                }else if(alarmLevel == 4){
-                    $(this).attr("src", "../static/img/Marker-red.png");
-                    $(this).everyTime("0.5s", function () {
-                        if(element.style.display == "block"){
-                            element.style.display = "none"
-                        }else {
-                            element.style.display = "block"
-                        }
-                    });
-                    console.log("red");
-                }
-            });
-
-        });
-        function isEmpty(value){
-            if(value == null || value == "" || value == "undefined" || value == undefined || value == "null"){
-                return true;
-            }
-            else{
-                value = value.replace(/\s/g,"");
-                if(value == ""){
-                    return true;
-                }
-                return false;
-            }
-        }
-        function addFactory() {
-            var loading = document.getElementById("loading");
-            loading.style.display = "block";
-        }
-
-        function rectClick(event) {
-            //获取相对于浏览器视口的坐标
-            console.log('x:' + event.clientX + "  y:" +  event.clientY);
-            $('#clientX').val(event.clientX);
-            $('#clientY').val(event.clientY);
-        }
-
-        function saveFactory(event) {
-            //获取相对于当前所指向对象的位置坐标
-            var plantCode =$('#plantCode').val();
-            var plantName =$('#plantName').val();
-            var clientX = $('#clientX').val();
-            var clientY = $('#clientY').val();
-            if(isEmpty(plantCode) || isEmpty(plantName))
-            {
-                alert("请输入车间号及车间名称.");
-            }
-            console.log(clientX + "   " + clientY);
-            var inputData = {};
-            inputData.plantCode = plantCode;
-            inputData.plantName = plantName;
-            inputData.clientX = parseInt(clientX);
-            inputData.clientY = clientY;
-            $.ajax({
-                url: "/factoryinspection/winery/savePlant",
-                method: "post",
-                data: inputData,
-                success: function (result) {
-                    alert(result);
-                    window.history.go(0);
-                    // $("#tableInfoContainer").html(result);
-                },
-                error: function (result) {
-                    alert(result);
-                    window.history.go(0);
-                }
-            });
-        }
-
-        $(this).click(function(e) { // 在页面任意位置点击而触发此事件
-            // e.target表示被点击的目标
-            var machineType =$('#machineType').val();
-            var plantId = $(e.target).attr("plantId");
-            if(plantId == null){
-                return;
-            }
-            location.href =  projectName+"/winery/index?plantId=" + plantId;
-            // if(machineType=="server"){
-            //     if(plantId == null){
-            //         return;
-            //     }
-            //     // location.href =  projectName+"/serverfactory/serverfactorycontainer?factoryId=" + plantId;
-            //     location.href =  projectName+"/winery/index?plantId=" + plantId;
-            // }else if(machineType == "local"){
-            //     if(plantId == null){
-            //         return;
-            //     }
-            //     location.href =  projectName+"/winery/index?plantId=" + plantId;
-            // }
-        });
-
-        function closeSaveFactory() {
-            window.history.go(0);
-        }
-    </script>
-    <style>
-        #mapCanvas{
-            width: 100%;
-            height: 100%;
-            background:  white url(../static/img/factorymap.png) 2px 2px no-repeat;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: -1;
-        }
-        .plant{
-            position: absolute;
-        }
-        /* 模态框样式 */
-        .loading {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            left: 0;
-            background-color: black;
-            opacity: 0.4;
-            z-index: 9998;
-        }
-
-        /* 动图样式 */
-        .loading .gif {
-            color: whitesmoke;
-            position: fixed;
-            left: 37%;
-            top: 50%;
-            margin-left: -16px;
-            margin-top: -16px;
-            z-index: 9998;
-            font-size: 30px;
-        }
-    </style>
+    <script type="text/javascript" th:src="@{/static/scripts/factoryinspection/localScripts/plantMap.js}"></script>
 </head>
 <body>
 <canvas id="mapCanvas">
 </canvas>
-
 <button id="addFactory" class="btn btn-primary" onclick="addFactory()">新增车间</button>
-<input id="machineType" style="display: none;" type="text" th:value="#{com.loohos.machineType}">
 <div class="col-xs-12 col-lg-12 col-md-12" style="z-index: 1" th:each="plant:${plants}">
     <img class="plant"
          th:plantId="${plant.plantId}"
@@ -194,11 +31,11 @@
          th:alarmLevel="${plant.alarmLevel}">
 </div>
 <!-- 模态框部分 -->
-<div id="loading" class="loading" style="display:  none; z-index: 9998;" onclick="rectClick(event)" data-toggle="modal" data-target="#myModal">
+<div id="loading" class="loading" style="" onclick="rectClick(event)" data-toggle="modal" data-target="#myModal">
     <div class="gif">点击页面确认新增车间位置</div>
 </div>
 <!--添加设备model-->
-<div style="z-index: 9999;" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -228,9 +65,10 @@
                 </form>
             </div>
             <div class="modal-footer" >
-                <button type="button" class="btn btn-default" data-dismiss="modal" style="float: right;margin-right: 7px;" onclick="closeSaveFactory()">关闭</button>
-                <button type="button" id="saveTerminalBtn" class="btn btn-success" onclick="saveFactory()" style="float: right;margin-right: 20px">新增车间</button>
+                <button type="button" id="closeSaveTab" class="btn btn-default" data-dismiss="modal" onclick="closeSaveFactory()">关闭</button>
+                <button type="button" id="saveTerminalBtn" class="btn btn-success" onclick="saveFactory()">新增车间</button>
             </div>
+
         </div><!-- /.modal-content -->
     </div><!-- /.modal -->
 </div>

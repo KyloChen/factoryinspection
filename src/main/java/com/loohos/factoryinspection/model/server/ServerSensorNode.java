@@ -11,7 +11,7 @@ public class ServerSensorNode {
     private Date createdTime;
     private double sensorValue;
     private SensorType sensorType;
-    private int AlarmLevel = 3;
+    private int AlarmLevel = 4;
     private ServerSensor serverSensor;
 
     @Id

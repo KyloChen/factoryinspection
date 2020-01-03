@@ -33,7 +33,8 @@ public class ServerPitServiceImpl extends DaoSupport<ServerPit> implements Serve
 
     @Override
     public List<ServerPit> getPitsByTeam(ServerTeam team) {
-        Query query = em.createQuery("select o from ServerPit o where o.serverTeam = ?1 order by o.pitCode asc");
+//        Query query = em.createQuery("select o from ServerPit o where o.serverTeam = ?1 order by o.pitCode asc");
+        Query query = em.createQuery("select o from ServerPit o where o.serverTeam = ?1");
         query.setParameter(1, team);
         try{
             List<ServerPit> pits = query.getResultList();

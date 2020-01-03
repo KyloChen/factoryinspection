@@ -13,6 +13,7 @@ public class LocalToServerSensorAdding extends BaseFormBean {
     private ServerSensorNode topSensorNode;
     private ServerSensorNode midSensorNode;
     private ServerSensorNode botSensorNode;
+    private String savingType;
 
     public ServerPlant getServerPlant() {
         return serverPlant;
@@ -92,5 +93,13 @@ public class LocalToServerSensorAdding extends BaseFormBean {
 
     public void setBotSensorNode(ServerSensorNode botSensorNode) {
         this.botSensorNode = botSensorNode;
+    }
+
+    public String getSavingType() {
+        return savingType;
+    }
+
+    public void setSavingType(String savingType) {
+        this.savingType = savingType;
     }
 }

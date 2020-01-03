@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Query;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -152,6 +153,63 @@ public class SensorNodeServiceImpl extends DaoSupport<SensorNode> implements Sen
         query.setParameter(1, sensor);
         query.setParameter(2, startDate);
         query.setParameter(3, endDate);
+        try{
+            List<Date> nodeList = query.getResultList();
+            if (nodeList.size() > 0) {
+                return nodeList;
+            } else {
+                System.out.println("无历史数据！");
+                return null;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public List<Double> getLastSixNodeBySensorWithTypeAndCurDay(Sensor sensor, SensorType sensorType, int hours) {
+        Date curDate = new Date();
+        long curDateS = curDate.getTime();
+        long sixHoursAgoDateS = (curDate.getTime() - hours*60*60*1000);
+        Date sixHoursAgoDate = new Date(sixHoursAgoDateS);
+        Query query = em.createQuery("select o.sensorValue from SensorNode o where " +
+                "o.sensor = ?1 and " +
+                "o.sensorType = ?2 and " +
+                "o.createdTime between ?3 and ?4 " +
+                "order by o.createdTime asc");
+        query.setParameter(1, sensor);
+        query.setParameter(2, sensorType);
+        query.setParameter(3, sixHoursAgoDate);
+        query.setParameter(4, curDate);
+        try{
+            List<Double> nodeList = query.getResultList();
+            if (nodeList.size() > 0) {
+                return nodeList;
+            } else {
+                System.out.println("无历史数据！");
+                return null;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public List<Date> getLastSixTimeBySensorAndCurDay(Sensor sensor, int hours) {
+        Date curDate = new Date();
+        long curDateS = curDate.getTime();
+        long sixHoursAgoDateS = (curDate.getTime() - hours*60*60*1000);
+        Date sixHoursAgoDate = new Date(sixHoursAgoDateS);
+        Query query = em.createQuery("select o.createdTime from SensorNode o where " +
+                "o.sensor = ?1 and " +
+                "o.sensorType = 'TOP_TEMP_SENSOR' and " +
+                "o.createdTime between ?2 and ?3 " +
+                "order by o.createdTime asc");
+        query.setParameter(1, sensor);
+        query.setParameter(2, sixHoursAgoDate);
+        query.setParameter(3, curDate);
         try{
             List<Date> nodeList = query.getResultList();
             if (nodeList.size() > 0) {

@@ -9,7 +9,6 @@ public class ServerTerritory {
     private String territoryId;
     private int territoryCode;
     private ServerPlant serverPlant;
-    private Set<ServerTeam> serverTeams;
     private String localTerritoryId;
 
     @Id
@@ -39,15 +38,6 @@ public class ServerTerritory {
 
     public void setServerPlant(ServerPlant serverPlant) {
         this.serverPlant = serverPlant;
-    }
-
-    @OneToMany(cascade = {CascadeType.REMOVE},fetch = FetchType.EAGER, mappedBy = "serverTerritory")
-    public Set<ServerTeam> getServerTeams() {
-        return serverTeams;
-    }
-
-    public void setServerTeams(Set<ServerTeam> serverTeams) {
-        this.serverTeams = serverTeams;
     }
 
     @Column

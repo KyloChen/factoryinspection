@@ -7,9 +7,8 @@ import java.util.Set;
 public class Pit {
     private String pitId;
     private int pitCode;
-//    private Plant plant;
     private Team team;
-    private Set<Row> rows;
+    private String pitType = "true";
 
     @Id
     @Column(nullable = false)
@@ -30,25 +29,6 @@ public class Pit {
         this.pitCode = pitCode;
     }
 
-    @OneToMany(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "pit")
-    public Set<Row> getRows() {
-        return rows;
-    }
-
-    public void setRows(Set<Row> rows) {
-        this.rows = rows;
-    }
-
-//    @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.EAGER)
-//    @JoinColumn(name = "plant_id")
-//    public Plant getPlant() {
-//        return plant;
-//    }
-//
-//    public void setPlant(Plant plant) {
-//        this.plant = plant;
-//    }
-
     @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinColumn(name = "team_id")
     public Team getTeam() {
@@ -57,5 +37,14 @@ public class Pit {
 
     public void setTeam(Team team) {
         this.team = team;
+    }
+
+    @Column
+    public String getPitType() {
+        return pitType;
+    }
+
+    public void setPitType(String pitType) {
+        this.pitType = pitType;
     }
 }

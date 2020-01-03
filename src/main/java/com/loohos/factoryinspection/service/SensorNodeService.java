@@ -23,4 +23,8 @@ public interface SensorNodeService extends DAO<SensorNode> {
     List<Double> getValuesBySensorAndRange(Sensor sensor, SensorType topTempSensor, Date startDate, Date endDate);
 
     List<Date> getDatesBySensorAndRange(Sensor sensor, Date startDate, Date endDate);
+
+    List<Double> getLastSixNodeBySensorWithTypeAndCurDay(Sensor sensor, SensorType topTempSensor, int hours);
+
+    List<Date> getLastSixTimeBySensorAndCurDay(Sensor sensor, int hours);
 }

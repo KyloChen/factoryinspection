@@ -1,6 +1,7 @@
 package com.loohos.factoryinspection.service.impl;
 
 import com.loohos.factoryinspection.dao.DaoSupport;
+import com.loohos.factoryinspection.enumeration.SensorWorkingType;
 import com.loohos.factoryinspection.model.local.Cellar;
 import com.loohos.factoryinspection.model.local.Row;
 import com.loohos.factoryinspection.service.CellarService;
@@ -50,8 +51,10 @@ public class CellarServiceImpl extends DaoSupport<Cellar> implements CellarServi
 
     @Override
     public List<Cellar> getCellarByRowDesc(Row row) {
-        Query query = em.createQuery("select o from Cellar o where o.row = ?1 order by o.cellarCode desc");
+//        Query query = em.createQuery("select o from Cellar o where o.row = ?1 order by o.cellarCode desc");
+        Query query = em.createQuery("select o from Cellar o where o.row = ?1 and o.sensor.sensorWorkingType <> ?2");
         query.setParameter(1, row);
+        query.setParameter(2, SensorWorkingType.SENSOR_WAS_DELETED);
         try{
             List<Cellar> cellars = query.getResultList();
             if (cellars.size() > 0) {

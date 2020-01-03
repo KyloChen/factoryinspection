@@ -53,7 +53,8 @@ public class ServerCellarServiceImpl extends DaoSupport<ServerCellar> implements
 
     @Override
     public List<ServerCellar> getCellarByRowDesc(ServerRow row) {
-        Query query = em.createQuery("select o from ServerCellar o where o.serverRow = ?1 order by o.cellarCode desc");
+//        Query query = em.createQuery("select o from ServerCellar o where o.serverRow = ?1 order by o.cellarCode desc");
+        Query query = em.createQuery("select o from ServerCellar o where o.serverRow = ?1");
         query.setParameter(1, row);
         try{
             List<ServerCellar> cellars = query.getResultList();
