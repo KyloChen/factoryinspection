@@ -91,45 +91,45 @@
                     <span class="row-text" th:text="'排 '+${row.key}+'&nbsp&nbsp'">
                     </span>
                     <ul>
-                        <li class="vertical-li"  th:each="cellar:${row.value}">
-                            <div class="cellar-container-div" th:switch="${cellar.sensor.alarmLevel}" >
+                        <li class="vertical-li"  th:each="cellarSensor:${row.value}">
+                            <div class="cellar-container-div" th:switch="${cellarSensor.sensor.alarmLevel}" >
                                 <div class="sensor-img" th:case="0" style="color: darkgrey;background:black url(../static/img/all-empty.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >
+                                     th:attr="data-sensorId=${cellarSensor.sensor.sensorId}" th:sensorId="${cellarSensor.sensor.sensorId}" th:onclick="showCurve(this)" >
                                 </div>
                                 <div class="sensor-img" th:case="1" style="color: forestgreen;background:black url(../static/img/all-green.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >
+                                     th:attr="data-sensorId=${cellarSensor.sensor.sensorId}" th:sensorId="${cellarSensor.sensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
                                         <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
-                                        <span th:text="${cellar.sensor.curTopNodeValue}"></span>
-                                        <span th:text="${cellar.sensor.curMidNodeValue}"></span>
-                                        <span th:text="${cellar.sensor.curBotNodeValue}"></span>
+                                        <span th:text="${cellarSensor.sensor.curTopNodeValue}"></span>
+                                        <span th:text="${cellarSensor.sensor.curMidNodeValue}"></span>
+                                        <span th:text="${cellarSensor.sensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
                                 <div class="sensor-img" th:case="2" style="color: darkorange;background:black url(../static/img/all-orange.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >
+                                     th:attr="data-sensorId=${cellarSensor.sensor.sensorId}" th:sensorId="${cellarSensor.sensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
-                                        <span th:text="${cellar.sensor.curTopNodeValue}"></span>
-                                        <span th:text="${cellar.sensor.curMidNodeValue}"></span>
-                                        <span th:text="${cellar.sensor.curBotNodeValue}"></span>
+                                        <!--<span style="font-size: 13px" th:text="'窖'+${cellarSensor.cellarCode}"></span>-->
+                                        <span th:text="${cellarSensor.sensor.curTopNodeValue}"></span>
+                                        <span th:text="${cellarSensor.sensor.curMidNodeValue}"></span>
+                                        <span th:text="${cellarSensor.sensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
                                 <div class="sensor-img" th:case="3" style="color: red;background:black url(../static/img/all-red.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >
+                                     th:attr="data-sensorId=${cellarSensor.sensor.sensorId}" th:sensorId="${cellarSensor.sensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
-                                        <span th:text="${cellar.sensor.curTopNodeValue}"></span>
-                                        <span th:text="${cellar.sensor.curMidNodeValue}"></span>
-                                        <span th:text="${cellar.sensor.curBotNodeValue}"></span>
+                                        <!--<span style="font-size: 13px" th:text="'窖'+${cellarSensor.cellarCode}"></span>-->
+                                        <span th:text="${cellarSensor.sensor.curTopNodeValue}"></span>
+                                        <span th:text="${cellarSensor.sensor.curMidNodeValue}"></span>
+                                        <span th:text="${cellarSensor.sensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
                                 <div class="sensor-img" th:case="4" style="color: red;background:black url(../static/img/all-red.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >
+                                     th:attr="data-sensorId=${cellarSensor.sensor.sensorId}" th:sensorId="${cellarSensor.sensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
-                                        <span th:text="${cellar.sensor.curTopNodeValue}"></span>
-                                        <span th:text="${cellar.sensor.curMidNodeValue}"></span>
-                                        <span th:text="${cellar.sensor.curBotNodeValue}"></span>
+                                        <!--<span style="font-size: 13px" th:text="'窖'+${cellarSensor.cellarCode}"></span>-->
+                                        <span th:text="${cellarSensor.sensor.curTopNodeValue}"></span>
+                                        <span th:text="${cellarSensor.sensor.curMidNodeValue}"></span>
+                                        <span th:text="${cellarSensor.sensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
                             </div>

@@ -62,7 +62,7 @@ public class LocalDataAcquireComponent  {
     }
 
 //    @Scheduled(cron = "10 */1 * * * ?")
-    @Scheduled(cron = "30 */10 * * * ?")
+    @Scheduled(cron = "30 */5 * * * ?")
     private void acquireSensorInfo() {
         if (!machineType.equals("local")) {
             logger.info("The machineType is :" + machineType);
@@ -127,8 +127,8 @@ public class LocalDataAcquireComponent  {
                 byte[] respMessage = HexUtils.hexStringToByte(sb.toString());
                 logger.info("rs接收数据长度： " + respMessage.length);
                 if (respMessage.length != 60) {
-                    logger.info("异常设备取值");
                     retString = "当前录入设备异常，请及时处理.";
+                    logger.info(retString);
                     SensorNode topNode = new SensorNode();
 
                     topNode.setAlarmLevel(4);

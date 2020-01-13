@@ -28,97 +28,166 @@
              <span style="color: whitesmoke; " th:text="'第 '+${pit.pitCode}+' 垮'">
              </span>
             <ul>
-                <li class="cellarTree" th:each="row:${cellarTree}">
+                <li class="cellarTree" th:each="row:${cellarSensorTree}">
                     <span class="row-text" th:text="'排 '+${row.key}+'&nbsp&nbsp'">
                     </span>
                     <ul>
-                        <li class="vertical-li"  th:each="cellar:${row.value}">
-                            <div class="cellar-container-div" th:switch="${cellar.sensor.alarmLevel}" >
+                        <li class="vertical-li"  th:each="cellarSensor:${row.value}">
+                            <div class="cellar-container-div" th:switch="${cellarSensor.sensor.alarmLevel}" >
                                 <div class="sensor-img" th:case="0" style="color: darkgrey;background:black url(../static/img/sensorIconBanned.png) 2px 2px no-repeat "
-                                     th:text="'窖'+${cellar.cellarCode}"
-                                     th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >
+                                     th:text="'窖'+${cellarSensor.cellar.cellarCode}"
+                                     th:attr="data-sensorId=${cellarSensor.sensor.sensorId}" th:sensorId="${cellarSensor.sensor.sensorId}" th:onclick="showCurve(this)" >
                                 </div>
                                 <div class="sensor-img" th:case="1" style="color: forestgreen;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >
+                                     th:attr="data-sensorId=${cellarSensor.sensor.sensorId}" th:sensorId="${cellarSensor.sensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>
-                                        <span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>
-                                        <span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>
-                                        <span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.cellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.sensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.sensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.sensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
                                 <div class="sensor-img" th:case="2" style="color: darkorange;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
-                                      th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >
+                                     th:attr="data-sensorId=${cellarSensor.sensor.sensorId}" th:sensorId="${cellarSensor.sensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>
-                                        <span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>
-                                        <span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>
-                                        <span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.cellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.sensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.sensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.sensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
                                 <div class="sensor-img" th:case="3" style="color: red;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >
+                                     th:attr="data-sensorId=${cellarSensor.sensor.sensorId}" th:sensorId="${cellarSensor.sensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>
-                                        <span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>
-                                        <span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>
-                                        <span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.cellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.sensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.sensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.sensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
                                 <div class="sensor-img" th:case="4" style="color: red;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >
+                                     th:attr="data-sensorId=${cellarSensor.sensor.sensorId}" th:sensorId="${cellarSensor.sensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>
-                                        <span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>
-                                        <span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>
-                                        <span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.cellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.sensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.sensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.sensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
                             </div>
                         </li>
                     </ul>
                 </li>
+                <!--<li class="cellarTree" th:each="row:${cellarTree}">-->
+                    <!--<span class="row-text" th:text="'排 '+${row.key}+'&nbsp&nbsp'">-->
+                    <!--</span>-->
+                    <!--<ul>-->
+                        <!--<li class="vertical-li"  th:each="cellar:${row.value}">-->
+                            <!--<div class="cellar-container-div" th:switch="${cellar.sensor.alarmLevel}" >-->
+                                <!--<div class="sensor-img" th:case="0" style="color: darkgrey;background:black url(../static/img/sensorIconBanned.png) 2px 2px no-repeat "-->
+                                     <!--th:text="'窖'+${cellar.cellarCode}"-->
+                                     <!--th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >-->
+                                <!--</div>-->
+                                <!--<div class="sensor-img" th:case="1" style="color: forestgreen;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "-->
+                                     <!--th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >-->
+                                    <!--<div class="curCellarValue">-->
+                                        <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
+                                        <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
+                                        <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
+                                        <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                                <!--<div class="sensor-img" th:case="2" style="color: darkorange;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "-->
+                                      <!--th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >-->
+                                    <!--<div class="curCellarValue">-->
+                                        <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
+                                        <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
+                                        <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
+                                        <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                                <!--<div class="sensor-img" th:case="3" style="color: red;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "-->
+                                     <!--th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >-->
+                                    <!--<div class="curCellarValue">-->
+                                        <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
+                                        <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
+                                        <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
+                                        <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                                <!--<div class="sensor-img" th:case="4" style="color: red;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "-->
+                                     <!--th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >-->
+                                    <!--<div class="curCellarValue">-->
+                                        <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
+                                        <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
+                                        <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
+                                        <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                            <!--</div>-->
+                        <!--</li>-->
+                    <!--</ul>-->
+                <!--</li>-->
             </ul>
         </li>
     </ul>
 </div>
 <div id="menu">
-    <button id="menu-alter" class="btn btn-info" value="" onclick="alterSensor()">修改</button>
+    <button id="menu-alter" class="btn btn-info" value="" onclick="alterSensor()" data-toggle="modal" data-target="#alterModal">修改</button>
     <button id="menu-delete" class="btn btn-danger" value="" onclick="deleteSensor()">删除</button>
 </div>
 <div id="curve-container" class="curve-part">
 </div>
+<!--添加设备model-->
+<div class="modal fade" id="alterModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="color: black">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">修改设备信息</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="plantCode" class="control-label">车间号:</label>
+                        <input type="text" class="form-control" id="plantCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="territoryCode" class="control-label">责任区号:</label>
+                        <input class="form-control" id="territoryCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="teamCode" class="control-label">班组号:</label>
+                        <input class="form-control" id="teamCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="pitCode" class="control-label">垮号:</label>
+                        <input class="form-control" id="pitCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="rowCode" class="control-label">排号:</label>
+                        <input class="form-control" id="rowCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="cellarCode" class="control-label">窖号:</label>
+                        <input class="form-control" id="cellarCode">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="sensorCode" class="control-label">设备特征码:</label>
+                        <input class="form-control" readonly="readonly" id="sensorCode">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" >
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="float: right;margin-right: 7px;">关闭</button>
+                <button type="button" id="confirmAlterSensorBtn" class="btn btn-success" value="" onclick="confirmAlterSensor()" style="float: right;margin-right: 20px">确认修改</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
 </body>
 <script >
-    document.oncontextmenu = function(e) {
-        //阻止浏览器默认事件
-        return false;//一般点击右键会出现浏览器默认的右键菜单，写了这句代码就可以阻止该默认事件。
-    };
 
-    var menu = document.getElementById("menu");
-    var alterBtn = document.getElementById("menu-alter");
-    var deleteBtn = document.getElementById("menu-delete");
-    $(function(){
-        $('.sensor-img').mousedown(function(e){
-            if(3 == e.which){//鼠标右击
-                if($(this).attr('sensorId')){
-                    //鼠标点的坐标
-                    var sensorId = $(this).attr('sensorId');
-                    menu.style.display = "block";
-                    //让自定义菜单随鼠标的箭头位置移动
-                    menu.style.left = e.clientX + "px";
-                    menu.style.top = e.clientY + "px";
-                    alterBtn.value = sensorId;
-                    deleteBtn.value = sensorId;
-                }else {
-                    alert("该设备未启用,无法操作.");
-                }
-            }
-        })
-    });
-    //实现点击document，自定义菜单消失
-    document.onclick = function() {
-        menu.style.display = "none";
-    };
 </script>
 </html>

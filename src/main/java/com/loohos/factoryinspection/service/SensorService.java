@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface SensorService extends DAO<Sensor>{
 
-    Sensor getSensorByCellar(Cellar cellar);
+    List<Sensor> getSensorByCellar(Cellar cellar);
 
     Sensor getDeleteSensorByCellar(Cellar cellar,SensorWorkingType sensorWorkingType);
 
@@ -18,4 +18,5 @@ public interface SensorService extends DAO<Sensor>{
 
     List<Sensor> getWorkingSensor();
 
+    Sensor getWorkingSensorByCellar(Cellar cellar);
 }

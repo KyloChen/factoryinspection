@@ -94,120 +94,131 @@ public class NewServerFactoryController {
             for(ServerTerritory territory: territories) {
                 List<ServerTeam> teams = serverTeamService.getTeamsByTerritory(territory);
                 for (ServerTeam team : teams) {
-                    pits = serverPitService.getPitsByTeam(team);
-                    if(pits.size() < 10){
-                        for (int i = pits.size()+1; i <= 10; i++){
+                    List<ServerPit> existedPits = serverPitService.getPitsByTeam(team);
+                    if(existedPits.size() < 10){
+//                        for (int i = pits.size()+1; i <= 10; i++){
+//                            Pit pit = new Pit();
+//                            pit.setPitCode(i);
+//                            pit.setPitType("false");
+//                            pits.add(pit);
+//                        }
+                        here:
+                        for(int i = 1; i <= 10; i++){
+                            for(ServerPit pit : existedPits){
+                                if(pit.getPitCode() == i){
+                                    logger.info("正常垮.");
+                                    pits.add(pit);
+                                    continue here;
+                                }
+                            }
+                            logger.info("填充垮.");
                             ServerPit pit = new ServerPit();
                             pit.setPitCode(i);
                             pit.setPitType("false");
                             pits.add(pit);
                         }
-                        Collections.sort(pits, new Comparator<ServerPit>() {
-                            @Override
-                            public int compare(ServerPit o1, ServerPit o2) {
-                                return o1.getPitCode() - o2.getPitCode();
-                            }
-                        });
                     }
                 }
             }
+            Collections.sort(pits, new Comparator<ServerPit>() {
+                @Override
+                public int compare(ServerPit o1, ServerPit o2) {
+                    return o1.getPitCode() - o2.getPitCode();
+                }
+            });
             modelMap.put("serverPits", pits);
         }
         return "winery/serverPage/serverPlantInside";
     }
 
-    /**
-     * 获取全部设备
-     */
-    @RequestMapping(value = "/showAllSensor",produces={"text/html;charset=UTF-8;","application/json;"})
-    public String showAllSensor(@RequestParam String plantId,
-                                ModelMap modelMap){
-        ServerPlant plant = serverPlantService.find(plantId);
-        modelMap.put("plant", plant);
-        List<ServerTerritory> territories = serverTerritoryService.getTerritoriesByPlant(plant);
-        List<ServerPit> pits = new ArrayList<>();
-        if(territories == null){
-            return "winery/serverPage/allSensor";
-        }
-        else {
-            for(ServerTerritory territory: territories) {
-                List<ServerTeam> teams = serverTeamService.getTeamsByTerritory(territory);
-                for (ServerTeam team : teams) {
-                    pits = serverPitService.getPitsByTeam(team);
-                    if(pits.size() < 10){
-                        for (int i = pits.size()+1; i <= 10; i++){
-                            ServerPit pit = new ServerPit();
-                            pit.setPitCode(i);
-                            pit.setPitType("false");
-                            pits.add(pit);
-                            logger.info("ss");
-                        }
-                        Collections.sort(pits, new Comparator<ServerPit>() {
-                            @Override
-                            public int compare(ServerPit o1, ServerPit o2) {
-                                return o1.getPitCode() - o2.getPitCode();
-                            }
-                        });
-                    }
-                }
-            }
-            modelMap.put("pits", pits);
-        }
-        Map<Integer, Map> pitTree = new TreeMap<>();
+
+    @RequestMapping(value = "/showCellar",produces={"text/html;charset=UTF-8;","application/json;"})
+    public String showCellar(@ModelAttribute Pit inputData,
+                             ModelMap modelMap){
+        ServerPit pit = serverPitService.find(inputData.getPitId());
+        modelMap.put("pit", pit);
         List<ServerRow> rows = new ArrayList<>();
-        for (ServerPit pit: pits){
-            if(pit.getPitType().equals("false")){
-                for (int i = 1; i<=4 ; i++){
-                    ServerRow row = new ServerRow();
-                    row.setRowCode(i);
-                    row.setRowType("false");
-                    rows.add(row);
+        List<ServerRow> existedRows = serverRowService.getRowByPit(pit);
+        if(existedRows.size() < 4){
+//            for (int i = rows.size()+1; i<=4 ; i++){
+//                Row row = new Row();
+//                row.setRowCode(i);
+//                row.setRowType("false");
+//                rows.add(row);
+//            }
+            here:
+            for (int i = 1; i <= 4 ; i++){
+                for(ServerRow row : existedRows){
+                    if(row.getRowCode() == i){
+                        logger.info("正常排");
+                        rows.add(row);
+                        continue here;
+                    }
                 }
-            }else if(pit.getPitType().equals("true")) {
-                rows = serverRowService.getRowByPit(pit);
-                for(int i = rows.size()+1; i<=4; i++){
-                    ServerRow row = new ServerRow();
-                    row.setRowType("false");
-                    row.setRowCode(i);
-                    rows.add(row);
+                logger.info("填充排");
+                ServerRow row = new ServerRow();
+                row.setRowCode(i);
+                row.setRowType("false");
+                rows.add(row);
+            }
+        }
+        modelMap.put("rows", rows);
+        Map<Integer, List<ServerCellarSensor>> serverCellarSensorTree = new TreeMap<>();
+        for(ServerRow row: rows){
+            List<ServerCellarSensor> serverCellarSensors = new ArrayList<>();
+            if(row.getRowType().equals("false")){
+                for(int i = 1; i<=12; i++){
+                    ServerCellar cellar = new ServerCellar();
+                    cellar.setCellarCode(i);
+                    cellar.setCellarType("false");
+                    ServerSensor sensor = new ServerSensor();
+                    sensor.setAlarmLevel(0);
+                    sensor.setServerCellar(cellar);
+                    ServerCellarSensor cellarSensor = new ServerCellarSensor();
+                    cellarSensor.setServerCellar(cellar);
+                    cellarSensor.setServerSensor(sensor);
+                    serverCellarSensors.add(cellarSensor);
+                    logger.info("填充项");
+                }
+            }else{
+                List<ServerCellar> existedCellars = serverCellarService.getCellarByRowDesc(row);
+                here:
+                for (int i = 1; i <= 12; i++) {
+                    for (ServerCellar cellar: existedCellars) {
+                        if(cellar.getCellarCode() == i){
+                            logger.info("正常项.");
+                            ServerSensor sensor = serverSensorService.getWorkingSensorByCellar(cellar);
+                            if(sensor != null) {
+                                ServerCellarSensor cellarSensor = new ServerCellarSensor();
+                                cellarSensor.setServerCellar(cellar);
+                                cellarSensor.setServerSensor(sensor);
+                                serverCellarSensors.add(cellarSensor);
+                            }else {
+                                ServerSensor sensor1 = new ServerSensor();
+                                sensor1.setServerCellar(cellar);
+                                sensor1.setAlarmLevel(0);
+                                ServerCellarSensor cellarSensor = new ServerCellarSensor();
+                                cellarSensor.setServerCellar(cellar);
+                                cellarSensor.setServerSensor(sensor1);
+                                serverCellarSensors.add(cellarSensor);
+                            }
+                            continue here;
+                        }
+                    }
+                    logger.info("无匹配，填充当前CellarCode");
+                    ServerCellar cellar = new ServerCellar();
+                    cellar.setCellarCode(i);
+                    cellar.setCellarType("false");
+                    ServerSensor sensor = new ServerSensor();
+                    sensor.setAlarmLevel(0);
+                    sensor.setServerCellar(cellar);
+                    ServerCellarSensor cellarSensor = new ServerCellarSensor();
+                    cellarSensor.setServerCellar(cellar);
+                    cellarSensor.setServerSensor(sensor);
+                    serverCellarSensors.add(cellarSensor);
+                    logger.info("填充项");
                 }
             }
-            Map<Integer, List<ServerCellar>> cellarTree = new TreeMap<>();
-            for(ServerRow row: rows){
-                List<ServerCellar> cellars = new ArrayList<>();
-                if(row.getRowType().equals("false")){
-                    for(int i = 1; i<=12; i++){
-                        ServerCellar cellar = new ServerCellar();
-                        cellar.setCellarCode(i);
-                        cellar.setCellarType("false");
-                        ServerSensor sensor = new ServerSensor();
-                        sensor.setAlarmLevel(0);
-                        cellar.setServerSensor(sensor);
-                        cellars.add(cellar);
-                        logger.info("填充项1");
-                    }
-                }else{
-                    List<ServerCellar> existedCellars = serverCellarService.getCellarByRowDesc(row);
-                    here:
-                    for (int i = 1; i <= 12; i++) {
-                        for (ServerCellar cellar: existedCellars) {
-                            if(cellar.getCellarCode() == i){
-                                logger.info("正常项1");
-                                cellars.add(cellar);
-                                continue here;
-                            }
-                        }
-                        logger.info("无匹配，填充当前CellarCode");
-                        ServerCellar cellar = new ServerCellar();
-                        cellar.setCellarCode(i);
-                        cellar.setCellarType("false");
-                        ServerSensor sensor = new ServerSensor();
-                        sensor.setAlarmLevel(0);
-                        cellar.setServerSensor(sensor);
-                        cellars.add(cellar);
-                        logger.info("填充项");
-                    }
-                }
 //            if(row.getRowType().equals("false")){
 //                for(int i = 1; i<=12; i++){
 //                    Cellar cellar = new Cellar();
@@ -232,20 +243,215 @@ public class NewServerFactoryController {
 //                    logger.info("正常项");
 //                }
 //            }
-                Collections.sort(cellars, new Comparator<ServerCellar>() {
-                    @Override
-                    public int compare(ServerCellar o1, ServerCellar o2) {
-                        return o2.getCellarCode() - o1.getCellarCode();
-                    }
-                });
-                cellarTree.put(row.getRowCode(), cellars);
-            }
-            pitTree.put(pit.getPitCode(), cellarTree);
+            Collections.sort(serverCellarSensors, new Comparator<ServerCellarSensor>() {
+                @Override
+                public int compare(ServerCellarSensor o1, ServerCellarSensor o2) {
+                    return o2.getServerCellar().getCellarCode() - o1.getServerCellar().getCellarCode();
+                }
+            });
+            serverCellarSensorTree.put(row.getRowCode(), serverCellarSensors);
         }
-        modelMap.put("pitTree", pitTree);
-        return "winery/serverPage/allSensor";
+        modelMap.put("cellarSensorTree",serverCellarSensorTree);
+        return "winery/serverPage/cellarContainer";
     }
 
+
+    /**
+     * 获取全部设备
+     */
+    @RequestMapping(value = "/showAllSensor",produces={"text/html;charset=UTF-8;","application/json;"})
+    public String showAllSensor(@RequestParam String plantId,
+                                ModelMap modelMap) {
+        ServerPlant plant = serverPlantService.find(plantId);
+        modelMap.put("plant", plant);
+        List<ServerTerritory> territories = serverTerritoryService.getTerritoriesByPlant(plant);
+        List<ServerPit> pits = new ArrayList<>();
+        if (territories == null) {
+            return "winery/serverPage/allSensor";
+        } else {
+            for (ServerTerritory territory : territories) {
+                List<ServerTeam> teams = serverTeamService.getTeamsByTerritory(territory);
+                for (ServerTeam team : teams) {
+                    List<ServerPit> existedPits = serverPitService.getPitsByTeam(team);
+                    if (existedPits.size() < 10) {
+//                        for (int i = pits.size()+1; i <= 10; i++){
+//                            Pit pit = new Pit();
+//                            pit.setPitCode(i);
+//                            pit.setPitType("false");
+//                            pits.add(pit);
+//                        }
+                        here:
+                        for (int i = 1; i <= 10; i++) {
+                            for (ServerPit pit : existedPits) {
+                                if (pit.getPitCode() == i) {
+                                    logger.info("1正常垮.");
+                                    pits.add(pit);
+                                    continue here;
+                                }
+                            }
+                            logger.info("填充垮.");
+                            ServerPit pit = new ServerPit();
+                            pit.setPitCode(i);
+                            pit.setPitType("false");
+                            pits.add(pit);
+                        }
+                    }
+                }
+            }
+            Collections.sort(pits, new Comparator<ServerPit>() {
+                @Override
+                public int compare(ServerPit o1, ServerPit o2) {
+                    return o1.getPitCode() - o2.getPitCode();
+                }
+            });
+        }
+        Map<Integer, Map> pitTree = new TreeMap<>();
+        List<ServerRow> rows = new ArrayList<>();
+        for (ServerPit pit : pits) {
+            if (pit.getPitType().equals("false")) {
+                for (int i = 1; i <= 4; i++) {
+                    ServerRow row = new ServerRow();
+                    row.setRowCode(i);
+                    row.setRowType("false");
+                    rows.add(row);
+                }
+            } else if (pit.getPitType().equals("true")) {
+                List<ServerRow> existedRows = serverRowService.getRowByPit(pit);
+                if (existedRows.size() < 4) {
+//            for (int i = rows.size()+1; i<=4 ; i++){
+//                Row row = new Row();
+//                row.setRowCode(i);
+//                row.setRowType("false");
+//                rows.add(row);
+//            }
+                    here:
+                    for (int i = 1; i <= 4; i++) {
+                        for (ServerRow row : existedRows) {
+                            if (row.getRowCode() == i) {
+                                logger.info("1正常排");
+                                rows.add(row);
+                                continue here;
+                            }
+                        }
+                        logger.info("填充排");
+                        ServerRow row = new ServerRow();
+                        row.setRowCode(i);
+                        row.setRowType("false");
+                        rows.add(row);
+                    }
+                }
+            }
+                Map<Integer, List<ServerCellarSensor>> cellarSensorTree = new TreeMap<>();
+                for (ServerRow row : rows) {
+                    List<ServerCellarSensor> cellarSensors = new ArrayList<>();
+                    if (row.getRowType().equals("false")) {
+                        for (int i = 1; i <= 12; i++) {
+                            ServerCellar cellar = new ServerCellar();
+                            cellar.setCellarCode(i);
+                            cellar.setCellarType("false");
+                            ServerSensor sensor = new ServerSensor();
+                            sensor.setAlarmLevel(0);
+                            sensor.setServerCellar(cellar);
+                            ServerCellarSensor cellarSensor = new ServerCellarSensor();
+                            cellarSensor.setServerCellar(cellar);
+                            cellarSensor.setServerSensor(sensor);
+                            cellarSensors.add(cellarSensor);
+                            logger.info("填充项1");
+                        }
+                    } else {
+                        List<ServerCellar> existedCellars = serverCellarService.getCellarByRowDesc(row);
+                        if (existedCellars.size() > 0) {
+                            here:
+                            for (int i = 1; i <= 12; i++) {
+                                for (ServerCellar cellar : existedCellars) {
+                                    if (cellar.getCellarCode() == i) {
+                                        ServerSensor sensor = serverSensorService.getWorkingSensorByCellar(cellar);
+                                        if (sensor == null) {
+                                            ServerSensor sensor1 = new ServerSensor();
+                                            sensor1.setAlarmLevel(0);
+                                            sensor1.setServerCellar(cellar);
+                                            ServerCellarSensor cellarSensor = new ServerCellarSensor();
+                                            cellarSensor.setServerCellar(cellar);
+                                            cellarSensor.setServerSensor(sensor1);
+                                            cellarSensors.add(cellarSensor);
+                                        } else {
+                                            logger.info("正常项1");
+                                            ServerCellarSensor cellarSensor = new ServerCellarSensor();
+                                            cellarSensor.setServerCellar(cellar);
+                                            cellarSensor.setServerSensor(sensor);
+                                            cellarSensors.add(cellarSensor);
+                                        }
+                                        continue here;
+                                    }
+                                }
+                                logger.info("无匹配，填充当前CellarCode");
+                                ServerCellar cellar = new ServerCellar();
+                                cellar.setCellarCode(i);
+                                cellar.setCellarType("false");
+                                ServerSensor sensor = new ServerSensor();
+                                sensor.setAlarmLevel(0);
+                                sensor.setServerCellar(cellar);
+                                ServerCellarSensor cellarSensor = new ServerCellarSensor();
+                                cellarSensor.setServerCellar(cellar);
+                                cellarSensor.setServerSensor(sensor);
+                                cellarSensors.add(cellarSensor);
+                                logger.info("填充项");
+                            }
+                        } else {
+                            for (int i = 1; i <= 12; i++) {
+                                logger.info("无匹配，填充当前CellarCode");
+                                ServerCellar cellar = new ServerCellar();
+                                cellar.setCellarCode(i);
+                                cellar.setCellarType("false");
+                                ServerSensor sensor = new ServerSensor();
+                                sensor.setAlarmLevel(0);
+                                sensor.setServerCellar(cellar);
+                                ServerCellarSensor cellarSensor = new ServerCellarSensor();
+                                cellarSensor.setServerCellar(cellar);
+                                cellarSensor.setServerSensor(sensor);
+                                cellarSensors.add(cellarSensor);
+                                logger.info("填充项");
+                            }
+                        }
+
+                    }
+//            if(row.getRowType().equals("false")){
+//                for(int i = 1; i<=12; i++){
+//                    Cellar cellar = new Cellar();
+//                    cellar.setCellarCode(i);
+//                    cellar.setCellarType("false");
+//                    Sensor sensor = new Sensor();
+//                    sensor.setAlarmLevel(0);
+//                    cellar.setSensor(sensor);
+//                    cellars.add(cellar);
+//                    logger.info("填充项");
+//                }
+//            } else if(cellars.size() < 12 ){
+//                cellars = cellarService.getCellarByRowDesc(row);
+//                for(int i = cellars.size()+1; i<=12; i++){
+//                    Cellar cellar = new Cellar();
+//                    cellar.setCellarCode(i);
+//                    cellar.setCellarType("false");
+//                    Sensor sensor = new Sensor();
+//                    sensor.setAlarmLevel(0);
+//                    cellar.setSensor(sensor);
+//                    cellars.add(cellar);
+//                    logger.info("正常项");
+//                }
+//            }
+                    Collections.sort(cellarSensors, new Comparator<ServerCellarSensor>() {
+                        @Override
+                        public int compare(ServerCellarSensor o1, ServerCellarSensor o2) {
+                            return o2.getServerCellar().getCellarCode() - o1.getServerCellar().getCellarCode();
+                        }
+                    });
+                    cellarSensorTree.put(row.getRowCode(), cellarSensors);
+                }
+                pitTree.put(pit.getPitCode(), cellarSensorTree);
+            }
+            modelMap.put("pitTree", pitTree);
+            return "winery/serverPage/allSensor";
+        }
 
     /**
      * 获取设备阈值
@@ -268,93 +474,6 @@ public class NewServerFactoryController {
         });
         String retString = JSON.toJSONString(alarmLevels);
         return retString;
-    }
-
-    @RequestMapping(value = "/showCellar",produces={"text/html;charset=UTF-8;","application/json;"})
-    public String showCellar(@ModelAttribute Pit inputData,
-                             ModelMap modelMap){
-        ServerPit pit = serverPitService.find(inputData.getPitId());
-        modelMap.put("pit", pit);
-        List<ServerRow> rows = serverRowService.getRowByPit(pit);
-        Map<Integer, List<ServerCellar>> cellarTree = new TreeMap<>();
-        if(rows.size() < 4){
-            for (int i = rows.size()+1; i<=4 ; i++){
-                ServerRow row = new ServerRow();
-                row.setRowCode(i);
-                row.setRowType("false");
-                rows.add(row);
-            }
-        }
-        modelMap.put("rows", rows);
-        for(ServerRow row: rows){
-            List<ServerCellar> cellars = new ArrayList<>();
-            if(row.getRowType().equals("false")){
-                for(int i = 1; i<=12; i++){
-                    ServerCellar cellar = new ServerCellar();
-                    cellar.setCellarCode(i);
-                    cellar.setCellarType("false");
-                    ServerSensor sensor = new ServerSensor();
-                    sensor.setAlarmLevel(0);
-                    cellar.setServerSensor(sensor);
-                    cellars.add(cellar);
-                    logger.info("填充项");
-                }
-            }else{
-                List<ServerCellar> existedCellars = serverCellarService.getCellarByRowDesc(row);
-                here:
-                for (int i = 1; i <= 12; i++) {
-                    for (ServerCellar cellar: existedCellars) {
-                        if(cellar.getCellarCode() == i){
-                            logger.info("正常项.");
-                            cellars.add(cellar);
-                            continue here;
-                        }
-                    }
-                    logger.info("无匹配，填充当前CellarCode");
-                    ServerCellar cellar = new ServerCellar();
-                    cellar.setCellarCode(i);
-                    cellar.setCellarType("false");
-                    ServerSensor sensor = new ServerSensor();
-                    sensor.setAlarmLevel(0);
-                    cellar.setServerSensor(sensor);
-                    cellars.add(cellar);
-                    logger.info("填充项");
-                }
-            }
-//            if(row.getRowType().equals("false")){
-//                for(int i = 1; i<=12; i++){
-//                    Cellar cellar = new Cellar();
-//                    cellar.setCellarCode(i);
-//                    cellar.setCellarType("false");
-//                    Sensor sensor = new Sensor();
-//                    sensor.setAlarmLevel(0);
-//                    cellar.setSensor(sensor);
-//                    cellars.add(cellar);
-//                    logger.info("填充项");
-//                }
-//            } else if(cellars.size() < 12 ){
-//                cellars = cellarService.getCellarByRowDesc(row);
-//                for(int i = cellars.size()+1; i<=12; i++){
-//                    Cellar cellar = new Cellar();
-//                    cellar.setCellarCode(i);
-//                    cellar.setCellarType("false");
-//                    Sensor sensor = new Sensor();
-//                    sensor.setAlarmLevel(0);
-//                    cellar.setSensor(sensor);
-//                    cellars.add(cellar);
-//                    logger.info("正常项");
-//                }
-//            }
-            Collections.sort(cellars, new Comparator<ServerCellar>() {
-                @Override
-                public int compare(ServerCellar o1, ServerCellar o2) {
-                    return o2.getCellarCode() - o1.getCellarCode();
-                }
-            });
-            cellarTree.put(row.getRowCode(), cellars);
-        }
-        modelMap.put("cellarTree",cellarTree);
-        return "winery/serverPage/cellarContainer";
     }
 
 
@@ -569,10 +688,10 @@ public class NewServerFactoryController {
                                          ModelMap model) {
         String retString = "";
         String workintType = "";
-//        if(!machineType.equals("server")){
-//            retString = "Not server function... upload is not running...";
-//            return retString;
-//        }
+        if(!machineType.equals("server")){
+            retString = "Not server function... upload is not running...";
+            return retString;
+        }
 
         logger.info("开始添加车间plant.....");
         logger.info(">>>>>>>>>>>>>>>>> sensorinfo is  : " + sensorInfo);
@@ -604,11 +723,6 @@ public class NewServerFactoryController {
                                     logger.info(retString);
                                     return retString;
                                 }else{
-                                    ServerCellar serverCellar1 = new ServerCellar();
-                                    serverCellar1.setCellarId(HttpClientUtils.getUUID());
-                                    serverCellar1.setServerRow(serverRow);
-                                    serverCellar1.setCellarCode(sensorAdding.getServerCellar().getCellarCode());
-                                    serverCellar1.setLocalCellarId(sensorAdding.getServerCellar().getLocalCellarId());
 
                                     ServerSensor serverSensor1 = new ServerSensor();
                                     serverSensor1.setSensorId(HttpClientUtils.getUUID());
@@ -620,7 +734,7 @@ public class NewServerFactoryController {
                                     serverSensor1.setBatteryState(sensorAdding.getServerSensor().getBatteryState());
                                     serverSensor1.setLocalSensorId(sensorAdding.getServerSensor().getLocalSensorId());
                                     serverSensor1.setSensorWorkingType(SensorWorkingType.SENSOR_IS_WORKING);
-                                    serverSensor1.setServerCellar(serverCellar1);
+                                    serverSensor1.setServerCellar(serverCellar);
                                     serverSensor1.setCreatedTime(new Date());
                                     serverSensorService.save(serverSensor1);
 
@@ -895,10 +1009,10 @@ public class NewServerFactoryController {
                                           @RequestBody String sensorInfo,
                                           ModelMap model) {
         String retString = "";
-        //        if(!machineType.equals("server")){
-//            retString = "Not server function... upload is not running...";
-//            return retString;
-//        }
+                if(!machineType.equals("server")){
+            retString = "Not server function... upload is not running...";
+            return retString;
+        }
         logger.info("开始添加sensor.....");
         logger.info(">>>>>>>>>>>>>>>>> sensorinfo is  : " + sensorInfo);
         if(sensorInfo.trim().length() < 1) {

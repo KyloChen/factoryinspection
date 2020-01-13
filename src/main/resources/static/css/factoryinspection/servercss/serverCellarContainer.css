@@ -1,0 +1,83 @@
+/* 模态框样式 */
+.loading {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background-color: black;
+    opacity: 0.4;
+    z-index: 9999;
+}
+
+/* 动图样式 */
+.loading .gif {
+    height: 32px;
+    width: 32px;
+    background: url(../../../img/loading.gif);
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    margin-left: -16px;
+    margin-top: -16px;
+    z-index: 9999;
+}
+.vertical-li{
+    list-style-image: none;
+    list-style-type: none;
+    float: left;
+}
+.sensor-img{
+    width: 68px;
+    height: 62px;
+}
+
+.cellar-part{
+    overflow: scroll;
+    width: 100%;
+    height: 47%;
+}
+.cellar-part::-webkit-scrollbar {
+    display:none
+}
+.curve-part{
+    width: 100%;height: 53%;
+}
+
+.curCellarValue span{
+    display: block;
+    font-size: 10px;
+}
+.curCellarValue{
+    position: relative;
+    top: -2px;
+}
+.cellarTree{
+    display: inline-block;
+    width: 100%;
+    margin-left: 3%;
+}
+.row-text{
+    color: whitesmoke;
+    float: left;
+    margin-top: 19px;
+}
+.cellar-container-div{
+    cursor: pointer;
+    width: 68px;
+    height: 62px;
+}
+.sensor-img{
+    font-size: 13px;
+    padding: 5px 0;
+}
+#menu {
+    border-radius: 10px;
+    position: fixed;
+    left:0;
+    top:0;
+    width:50px;
+    height: auto;
+    background-color: black;
+    display: none;
+}

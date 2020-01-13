@@ -3,7 +3,7 @@ package com.loohos.factoryinspection.model.formbean;
 import com.loohos.factoryinspection.model.local.Cellar;
 import com.loohos.factoryinspection.model.local.Sensor;
 
-public class CellarAndWorkingSensor {
+public class CellarSensor {
     private Cellar cellar;
     private Sensor sensor;
 

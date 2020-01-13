@@ -30,14 +30,6 @@ public class Cellar {
         this.cellarCode = cellarCode;
     }
 
-    @OneToOne(cascade = {CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "cellar")
-    public Sensor getSensor() {
-        return sensor;
-    }
-
-    public void setSensor(Sensor sensor) {
-        this.sensor = sensor;
-    }
 
     @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinColumn(name = "row_id")

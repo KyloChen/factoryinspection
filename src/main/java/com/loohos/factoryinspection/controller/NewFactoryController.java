@@ -10,10 +10,7 @@ import com.loohos.factoryinspection.model.formbean.*;
 import com.loohos.factoryinspection.model.local.*;
 import com.loohos.factoryinspection.model.server.*;
 import com.loohos.factoryinspection.service.*;
-import com.loohos.factoryinspection.utils.CommonUtils;
-import com.loohos.factoryinspection.utils.HexUtils;
-import com.loohos.factoryinspection.utils.HttpClientUtils;
-import com.loohos.factoryinspection.utils.SerialCommThread;
+import com.loohos.factoryinspection.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -165,121 +162,132 @@ public class NewFactoryController  {
             for(Territory territory: territories) {
                 List<Team> teams = teamService.getTeamsByTerritory(territory);
                 for (Team team : teams) {
-                    pits = pitService.getPitsByTeam(team);
-                    if(pits.size() < 10){
-                        for (int i = pits.size()+1; i <= 10; i++){
+                    List<Pit> existedPits = pitService.getPitsByTeam(team);
+                    if(existedPits.size() < 10){
+//                        for (int i = pits.size()+1; i <= 10; i++){
+//                            Pit pit = new Pit();
+//                            pit.setPitCode(i);
+//                            pit.setPitType("false");
+//                            pits.add(pit);
+//                        }
+                        here:
+                        for(int i = 1; i <= 10; i++){
+                            for(Pit pit : existedPits){
+                                if(pit.getPitCode() == i){
+                                    logger.info("正常垮.");
+                                    pits.add(pit);
+                                    continue here;
+                                }
+                            }
+                            logger.info("填充垮.");
                             Pit pit = new Pit();
                             pit.setPitCode(i);
                             pit.setPitType("false");
                             pits.add(pit);
                         }
-                        Collections.sort(pits, new Comparator<Pit>() {
-                            @Override
-                            public int compare(Pit o1, Pit o2) {
-                                return o1.getPitCode() - o2.getPitCode();
-                            }
-                        });
                     }
                 }
             }
+            Collections.sort(pits, new Comparator<Pit>() {
+                @Override
+                public int compare(Pit o1, Pit o2) {
+                    return o1.getPitCode() - o2.getPitCode();
+                }
+            });
             modelMap.put("pits", pits);
         }
 //        return "factory/factorycontainer";
         return "winery/localPage/plantInside";
     }
 
-    /**
-     * 获取全部设备
-     */
-    @RequestMapping(value = "/showAllSensor",produces={"text/html;charset=UTF-8;","application/json;"})
-    public String showAllSensor(@RequestParam String plantId,
-                            ModelMap modelMap){
-        Plant plant = plantService.find(plantId);
-        modelMap.put("plant", plant);
-        List<Territory> territories = territoryService.getTerritoriesByPlant(plant);
-        List<Pit> pits = new ArrayList<>();
-        if(territories == null){
-            return "winery/localPage/allSensor";
-        }
-        else {
-            for(Territory territory: territories) {
-                List<Team> teams = teamService.getTeamsByTerritory(territory);
-                for (Team team : teams) {
-                    pits = pitService.getPitsByTeam(team);
-                    if(pits.size() < 10){
-                        for (int i = pits.size()+1; i <= 10; i++){
-                            Pit pit = new Pit();
-                            pit.setPitCode(i);
-                            pit.setPitType("false");
-                            pits.add(pit);
-                            logger.info("ss");
-                        }
-                        Collections.sort(pits, new Comparator<Pit>() {
-                            @Override
-                            public int compare(Pit o1, Pit o2) {
-                                return o1.getPitCode() - o2.getPitCode();
-                            }
-                        });
-                    }
-                }
-            }
-            modelMap.put("pits", pits);
-        }
-        Map<Integer, Map> pitTree = new TreeMap<>();
+
+    @RequestMapping(value = "/showCellar",produces={"text/html;charset=UTF-8;","application/json;"})
+    public String showCellar(@ModelAttribute Pit inputData,
+                             ModelMap modelMap){
+        Pit pit = pitService.find(inputData.getPitId());
+        modelMap.put("pit", pit);
         List<Row> rows = new ArrayList<>();
-        for (Pit pit: pits){
-            if(pit.getPitType().equals("false")){
-                for (int i = 1; i<=4 ; i++){
-                    Row row = new Row();
-                    row.setRowCode(i);
-                    row.setRowType("false");
-                    rows.add(row);
+        List<Row> existedRows = rowService.getRowByPit(pit);
+        if(existedRows.size() < 4){
+//            for (int i = rows.size()+1; i<=4 ; i++){
+//                Row row = new Row();
+//                row.setRowCode(i);
+//                row.setRowType("false");
+//                rows.add(row);
+//            }
+            here:
+            for (int i = 1; i <= 4 ; i++){
+                for(Row row : existedRows){
+                    if(row.getRowCode() == i){
+                        logger.info("正常排");
+                        rows.add(row);
+                        continue here;
+                    }
                 }
-            }else if(pit.getPitType().equals("true")) {
-                rows = rowService.getRowByPit(pit);
-                for(int i = rows.size()+1; i<=4; i++){
-                    Row row = new Row();
-                    row.setRowType("false");
-                    row.setRowCode(i);
-                    rows.add(row);
+                logger.info("填充排");
+                Row row = new Row();
+                row.setRowCode(i);
+                row.setRowType("false");
+                rows.add(row);
+            }
+        }
+        modelMap.put("rows", rows);
+        Map<Integer, List<CellarSensor>> cellarSensorTree = new TreeMap<>();
+        for(Row row: rows){
+            List<CellarSensor> cellarSensors = new ArrayList<>();
+            if(row.getRowType().equals("false")){
+                for(int i = 1; i<=12; i++){
+                    Cellar cellar = new Cellar();
+                    cellar.setCellarCode(i);
+                    cellar.setCellarType("false");
+                    Sensor sensor = new Sensor();
+                    sensor.setAlarmLevel(0);
+                    sensor.setCellar(cellar);
+                    CellarSensor cellarSensor = new CellarSensor();
+                    cellarSensor.setCellar(cellar);
+                    cellarSensor.setSensor(sensor);
+                    cellarSensors.add(cellarSensor);
+                    logger.info("填充项");
+                }
+            }else{
+                List<Cellar> existedCellars = cellarService.getCellarByRowDesc(row);
+                here:
+                for (int i = 1; i <= 12; i++) {
+                    for (Cellar cellar: existedCellars) {
+                        if(cellar.getCellarCode() == i){
+                            logger.info("正常项.");
+                            Sensor sensor = sensorService.getWorkingSensorByCellar(cellar);
+                            if(sensor != null) {
+                                CellarSensor cellarSensor = new CellarSensor();
+                                cellarSensor.setCellar(cellar);
+                                cellarSensor.setSensor(sensor);
+                                cellarSensors.add(cellarSensor);
+                            }else {
+                                Sensor sensor1 = new Sensor();
+                                sensor1.setCellar(cellar);
+                                sensor1.setAlarmLevel(0);
+                                CellarSensor cellarSensor = new CellarSensor();
+                                cellarSensor.setCellar(cellar);
+                                cellarSensor.setSensor(sensor1);
+                                cellarSensors.add(cellarSensor);
+                            }
+                            continue here;
+                        }
+                    }
+                    logger.info("无匹配，填充当前CellarCode");
+                    Cellar cellar = new Cellar();
+                    cellar.setCellarCode(i);
+                    cellar.setCellarType("false");
+                    Sensor sensor = new Sensor();
+                    sensor.setAlarmLevel(0);
+                    sensor.setCellar(cellar);
+                    CellarSensor cellarSensor = new CellarSensor();
+                    cellarSensor.setCellar(cellar);
+                    cellarSensor.setSensor(sensor);
+                    cellarSensors.add(cellarSensor);
+                    logger.info("填充项");
                 }
             }
-            Map<Integer, List<Cellar>> cellarTree = new TreeMap<>();
-            for(Row row: rows){
-                List<Cellar> cellars = new ArrayList<>();
-                if(row.getRowType().equals("false")){
-                    for(int i = 1; i<=12; i++){
-                        Cellar cellar = new Cellar();
-                        cellar.setCellarCode(i);
-                        cellar.setCellarType("false");
-                        Sensor sensor = new Sensor();
-                        sensor.setAlarmLevel(0);
-                        cellar.setSensor(sensor);
-                        cellars.add(cellar);
-                        logger.info("填充项1");
-                    }
-                }else{
-                    List<Cellar> existedCellars = cellarService.getCellarByRowDesc(row);
-                    here:
-                    for (int i = 1; i <= 12; i++) {
-                        for (Cellar cellar: existedCellars) {
-                            if(cellar.getCellarCode() == i){
-                                logger.info("正常项1");
-                                cellars.add(cellar);
-                                continue here;
-                            }
-                        }
-                        logger.info("无匹配，填充当前CellarCode");
-                        Cellar cellar = new Cellar();
-                        cellar.setCellarCode(i);
-                        cellar.setCellarType("false");
-                        Sensor sensor = new Sensor();
-                        sensor.setAlarmLevel(0);
-                        cellar.setSensor(sensor);
-                        cellars.add(cellar);
-                        logger.info("填充项");
-                    }
-                }
 //            if(row.getRowType().equals("false")){
 //                for(int i = 1; i<=12; i++){
 //                    Cellar cellar = new Cellar();
@@ -304,15 +312,275 @@ public class NewFactoryController  {
 //                    logger.info("正常项");
 //                }
 //            }
-                Collections.sort(cellars, new Comparator<Cellar>() {
+            Collections.sort(cellarSensors, new Comparator<CellarSensor>() {
+                @Override
+                public int compare(CellarSensor o1, CellarSensor o2) {
+                    return o2.getCellar().getCellarCode() - o1.getCellar().getCellarCode();
+                }
+            });
+            cellarSensorTree.put(row.getRowCode(), cellarSensors);
+        }
+//        modelMap.put("cellarTree",cellarTree);
+        modelMap.put("cellarSensorTree", cellarSensorTree);
+        return "winery/localPage/cellarContainer";
+    }
+
+
+    /**
+     * 获取全部设备
+     */
+    @RequestMapping(value = "/showAllSensor",produces={"text/html;charset=UTF-8;","application/json;"})
+    public String showAllSensor(@RequestParam String plantId,
+                            ModelMap modelMap){
+        Plant plant = plantService.find(plantId);
+        modelMap.put("plant", plant);
+        List<Territory> territories = territoryService.getTerritoriesByPlant(plant);
+        List<Pit> pits = new ArrayList<>();
+        if(territories == null){
+            return "winery/localPage/allSensor";
+        }
+        else {
+            for(Territory territory: territories) {
+                List<Team> teams = teamService.getTeamsByTerritory(territory);
+                for (Team team : teams) {
+                    List<Pit> existedPits = pitService.getPitsByTeam(team);
+                    if(existedPits.size() < 10){
+//                        for (int i = pits.size()+1; i <= 10; i++){
+//                            Pit pit = new Pit();
+//                            pit.setPitCode(i);
+//                            pit.setPitType("false");
+//                            pits.add(pit);
+//                        }
+                        here:
+                        for(int i = 1; i <= 10; i++){
+                            for(Pit pit : existedPits){
+                                if(pit.getPitCode() == i){
+                                    logger.info("1正常垮.");
+                                    pits.add(pit);
+                                    continue here;
+                                }
+                            }
+                            logger.info("填充垮.");
+                            Pit pit = new Pit();
+                            pit.setPitCode(i);
+                            pit.setPitType("false");
+                            pits.add(pit);
+                        }
+                    }
+                }
+            }
+            Collections.sort(pits, new Comparator<Pit>() {
+                @Override
+                public int compare(Pit o1, Pit o2) {
+                    return o1.getPitCode() - o2.getPitCode();
+                }
+            });
+        }
+        Map<Integer, Map> pitTree = new TreeMap<>();
+        List<Row> rows = new ArrayList<>();
+        for (Pit pit: pits){
+            if(pit.getPitType().equals("false")){
+                for (int i = 1; i<=4 ; i++){
+                    Row row = new Row();
+                    row.setRowCode(i);
+                    row.setRowType("false");
+                    rows.add(row);
+                }
+            }else if(pit.getPitType().equals("true")) {
+                List<Row> existedRows = rowService.getRowByPit(pit);
+                if(existedRows.size() < 4){
+//            for (int i = rows.size()+1; i<=4 ; i++){
+//                Row row = new Row();
+//                row.setRowCode(i);
+//                row.setRowType("false");
+//                rows.add(row);
+//            }
+                    here:
+                    for (int i = 1; i <= 4 ; i++){
+                        for(Row row : existedRows){
+                            if(row.getRowCode() == i){
+                                logger.info("1正常排");
+                                rows.add(row);
+                                continue here;
+                            }
+                        }
+                        logger.info("填充排");
+                        Row row = new Row();
+                        row.setRowCode(i);
+                        row.setRowType("false");
+                        rows.add(row);
+                    }
+                }
+//                for(int i = rows.size()+1; i<=4; i++){
+//                    Row row = new Row();
+//                    row.setRowType("false");
+//                    row.setRowCode(i);
+//                    rows.add(row);
+//                }
+            }
+            Map<Integer, List<CellarSensor>> cellarSensorTree = new TreeMap<>();
+            for(Row row: rows){
+                List<CellarSensor> cellarSensors = new ArrayList<>();
+                if(row.getRowType().equals("false")){
+                    for(int i = 1; i<=12; i++){
+                        Cellar cellar = new Cellar();
+                        cellar.setCellarCode(i);
+                        cellar.setCellarType("false");
+                        Sensor sensor = new Sensor();
+                        sensor.setAlarmLevel(0);
+                        sensor.setCellar(cellar);
+                        CellarSensor cellarSensor = new CellarSensor();
+                        cellarSensor.setCellar(cellar);
+                        cellarSensor.setSensor(sensor);
+                        cellarSensors.add(cellarSensor);
+                        logger.info("填充项1");
+                    }
+                }else{
+                    List<Cellar> existedCellars = cellarService.getCellarByRowDesc(row);
+                    if(existedCellars.size()>0){
+                        here:
+                        for (int i = 1; i <= 12; i++) {
+                            for (Cellar cellar: existedCellars) {
+                                if(cellar.getCellarCode() == i){
+                                    Sensor sensor = sensorService.getWorkingSensorByCellar(cellar);
+                                    if(sensor == null){
+                                        Sensor sensor1 = new Sensor();
+                                        sensor1.setAlarmLevel(0);
+                                        sensor1.setCellar(cellar);
+                                        CellarSensor cellarSensor = new CellarSensor();
+                                        cellarSensor.setCellar(cellar);
+                                        cellarSensor.setSensor(sensor1);
+                                        cellarSensors.add(cellarSensor);
+                                    }else{
+                                        logger.info("正常项1");
+                                        CellarSensor cellarSensor = new CellarSensor();
+                                        cellarSensor.setCellar(cellar);
+                                        cellarSensor.setSensor(sensor);
+                                        cellarSensors.add(cellarSensor);
+                                    }
+                                    continue here;
+                                }
+                            }
+                            logger.info("无匹配，填充当前CellarCode");
+                            Cellar cellar = new Cellar();
+                            cellar.setCellarCode(i);
+                            cellar.setCellarType("false");
+                            Sensor sensor = new Sensor();
+                            sensor.setAlarmLevel(0);
+                            sensor.setCellar(cellar);
+                            CellarSensor cellarSensor = new CellarSensor();
+                            cellarSensor.setCellar(cellar);
+                            cellarSensor.setSensor(sensor);
+                            cellarSensors.add(cellarSensor);
+                            logger.info("填充项");
+                        }
+                    }else {
+                        for (int i = 1; i <= 12; i++) {
+                            logger.info("无匹配，填充当前CellarCode");
+                            Cellar cellar = new Cellar();
+                            cellar.setCellarCode(i);
+                            cellar.setCellarType("false");
+                            Sensor sensor = new Sensor();
+                            sensor.setAlarmLevel(0);
+                            sensor.setCellar(cellar);
+                            CellarSensor cellarSensor = new CellarSensor();
+                            cellarSensor.setCellar(cellar);
+                            cellarSensor.setSensor(sensor);
+                            cellarSensors.add(cellarSensor);
+                            logger.info("填充项");
+                        }
+                    }
+
+                }
+//        Map<Integer, Map> pitTree = new TreeMap<>();
+//        List<Row> rows = new ArrayList<>();
+//        for (Pit pit: pits){
+//            if(pit.getPitType().equals("false")){
+//                for (int i = 1; i<=4 ; i++){
+//                    Row row = new Row();
+//                    row.setRowCode(i);
+//                    row.setRowType("false");
+//                    rows.add(row);
+//                }
+//            }else if(pit.getPitType().equals("true")) {
+//                rows = rowService.getRowByPit(pit);
+//                for(int i = rows.size()+1; i<=4; i++){
+//                    Row row = new Row();
+//                    row.setRowType("false");
+//                    row.setRowCode(i);
+//                    rows.add(row);
+//                }
+//            }
+//            Map<Integer, List<Cellar>> cellarTree = new TreeMap<>();
+//            for(Row row: rows){
+//                List<Cellar> cellars = new ArrayList<>();
+//                if(row.getRowType().equals("false")){
+//                    for(int i = 1; i<=12; i++){
+//                        Cellar cellar = new Cellar();
+//                        cellar.setCellarCode(i);
+//                        cellar.setCellarType("false");
+//                        Sensor sensor = new Sensor();
+//                        sensor.setAlarmLevel(0);
+//                        cellar.setSensor(sensor);
+//                        cellars.add(cellar);
+//                        logger.info("填充项1");
+//                    }
+//                }else{
+//                    List<Cellar> existedCellars = cellarService.getCellarByRowDesc(row);
+//                    here:
+//                    for (int i = 1; i <= 12; i++) {
+//                        for (Cellar cellar: existedCellars) {
+//                            if(cellar.getCellarCode() == i){
+//                                logger.info("正常项1");
+//                                cellars.add(cellar);
+//                                continue here;
+//                            }
+//                        }
+//                        logger.info("无匹配，填充当前CellarCode");
+//                        Cellar cellar = new Cellar();
+//                        cellar.setCellarCode(i);
+//                        cellar.setCellarType("false");
+//                        Sensor sensor = new Sensor();
+//                        sensor.setAlarmLevel(0);
+//                        cellar.setSensor(sensor);
+//                        cellars.add(cellar);
+//                        logger.info("填充项");
+//                    }
+//                }
+//            if(row.getRowType().equals("false")){
+//                for(int i = 1; i<=12; i++){
+//                    Cellar cellar = new Cellar();
+//                    cellar.setCellarCode(i);
+//                    cellar.setCellarType("false");
+//                    Sensor sensor = new Sensor();
+//                    sensor.setAlarmLevel(0);
+//                    cellar.setSensor(sensor);
+//                    cellars.add(cellar);
+//                    logger.info("填充项");
+//                }
+//            } else if(cellars.size() < 12 ){
+//                cellars = cellarService.getCellarByRowDesc(row);
+//                for(int i = cellars.size()+1; i<=12; i++){
+//                    Cellar cellar = new Cellar();
+//                    cellar.setCellarCode(i);
+//                    cellar.setCellarType("false");
+//                    Sensor sensor = new Sensor();
+//                    sensor.setAlarmLevel(0);
+//                    cellar.setSensor(sensor);
+//                    cellars.add(cellar);
+//                    logger.info("正常项");
+//                }
+//            }
+                Collections.sort(cellarSensors, new Comparator<CellarSensor>() {
                     @Override
-                    public int compare(Cellar o1, Cellar o2) {
-                        return o2.getCellarCode() - o1.getCellarCode();
+                    public int compare(CellarSensor o1, CellarSensor o2) {
+                        return o2.getCellar().getCellarCode() - o1.getCellar().getCellarCode();
                     }
                 });
-                cellarTree.put(row.getRowCode(), cellars);
+
+                cellarSensorTree.put(row.getRowCode(), cellarSensors);
             }
-            pitTree.put(pit.getPitCode(), cellarTree);
+            pitTree.put(pit.getPitCode(), cellarSensorTree);
         }
         modelMap.put("pitTree", pitTree);
         return "winery/localPage/allSensor";
@@ -477,91 +745,6 @@ public class NewFactoryController  {
 ////        return "factory/factorycontainer";
 //        return "factory/plantInside";
 //    }
-
-    @RequestMapping(value = "/showCellar",produces={"text/html;charset=UTF-8;","application/json;"})
-    public String showCellar(@ModelAttribute Pit inputData,
-                                 ModelMap modelMap){
-        Pit pit = pitService.find(inputData.getPitId());
-        modelMap.put("pit", pit);
-        List<Row> rows = rowService.getRowByPit(pit);
-        Map<Integer, List<Cellar>> cellarTree = new TreeMap<>();
-        if(rows.size() < 4){
-            for (int i = rows.size()+1; i<=4 ; i++){
-                Row row = new Row();
-                row.setRowCode(i);
-                row.setRowType("false");
-                rows.add(row);
-            }
-        }
-        modelMap.put("rows", rows);
-        for(Row row: rows){
-            List<Cellar> cellars = new ArrayList<>();
-            if(row.getRowType().equals("false")){
-                for(int i = 1; i<=12; i++){
-                    Cellar cellar = new Cellar();
-                    cellar.setCellarCode(i);
-                    cellar.setCellarType("false");
-                    Sensor sensor = new Sensor();
-                    sensor.setAlarmLevel(0);
-                    cellars.add(cellar);
-                    logger.info("填充项");
-                }
-            }else{
-                List<Cellar> existedCellars = cellarService.getCellarByRowDesc(row);
-                here:
-                for (int i = 1; i <= 12; i++) {
-                    for (Cellar cellar: existedCellars) {
-                        if(cellar.getCellarCode() == i){
-                            logger.info("正常项.");
-                            cellars.add(cellar);
-                            continue here;
-                        }
-                    }
-                    logger.info("无匹配，填充当前CellarCode");
-                    Cellar cellar = new Cellar();
-                    cellar.setCellarCode(i);
-                    cellar.setCellarType("false");
-                    Sensor sensor = new Sensor();
-                    sensor.setAlarmLevel(0);
-                    cellars.add(cellar);
-                    logger.info("填充项");
-                }
-            }
-//            if(row.getRowType().equals("false")){
-//                for(int i = 1; i<=12; i++){
-//                    Cellar cellar = new Cellar();
-//                    cellar.setCellarCode(i);
-//                    cellar.setCellarType("false");
-//                    Sensor sensor = new Sensor();
-//                    sensor.setAlarmLevel(0);
-//                    cellar.setSensor(sensor);
-//                    cellars.add(cellar);
-//                    logger.info("填充项");
-//                }
-//            } else if(cellars.size() < 12 ){
-//                cellars = cellarService.getCellarByRowDesc(row);
-//                for(int i = cellars.size()+1; i<=12; i++){
-//                    Cellar cellar = new Cellar();
-//                    cellar.setCellarCode(i);
-//                    cellar.setCellarType("false");
-//                    Sensor sensor = new Sensor();
-//                    sensor.setAlarmLevel(0);
-//                    cellar.setSensor(sensor);
-//                    cellars.add(cellar);
-//                    logger.info("正常项");
-//                }
-//            }
-            Collections.sort(cellars, new Comparator<Cellar>() {
-                @Override
-                public int compare(Cellar o1, Cellar o2) {
-                    return o2.getCellarCode() - o1.getCellarCode();
-                }
-            });
-            cellarTree.put(row.getRowCode(), cellars);
-        }
-        modelMap.put("cellarTree",cellarTree);
-        return "winery/localPage/cellarContainer";
-    }
 
 
     @RequestMapping(value = "/curveDetail",produces={"text/html;charset=UTF-8;","application/json;"})
@@ -792,18 +975,821 @@ public class NewFactoryController  {
     /**
      *修改终端信息
      * */
-    @RequestMapping(value = "/alterSensor",produces={"text/html;charset=UTF-8;","application/json;"})
+    @RequestMapping(value = "/showInfoBeforeAlter",produces={"text/html;charset=UTF-8;","application/json;"})
     @ResponseBody
-    public String alterSensor(@ModelAttribute Sensor inputData,
-                               HttpServletRequest request){
+    public String showInfoBeforeAlter(@ModelAttribute Sensor inputData,
+                              HttpServletRequest request){
         String retString = "";
         Sensor sensor = sensorService.find(inputData.getSensorId());
         try{
-            retString = "修改设备 " + sensor.getSensorCode() +" 成功";
+            System.out.println(sensor);
+            SensorPosInfo posInfo = new SensorPosInfo();
+            posInfo.setCellarCode(sensor.getCellar().getCellarCode());
+            posInfo.setRowCode(sensor.getCellar().getRow().getRowCode());
+            posInfo.setPitCode(sensor.getCellar().getRow().getPit().getPitCode());
+            posInfo.setTeamCode(sensor.getCellar().getRow().getPit().getTeam().getTeamCode());
+            posInfo.setTerritoryCode(sensor.getCellar().getRow().getPit().getTeam().getTerritory().getTerritoryCode());
+            posInfo.setPlantCode(sensor.getCellar().getRow().getPit().getTeam().getTerritory().getPlant().getPlantCode());
+            posInfo.setSensorCode(sensor.getSensorCode());
+            Gson gson = new Gson();
+            String posInfoString = gson.toJson(posInfo);
+            return posInfoString;
+        }catch (Exception e){
+            e.printStackTrace();
+            return retString;
+        }
+    }
+
+    /**
+     *修改终端信息
+     * */
+    @RequestMapping(value = "/alterSensor",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String alterSensor(@ModelAttribute SensorPosInfo inputData,
+                               HttpServletRequest request){
+        String retString = "";
+        logger.info("terr: " + inputData.getTerritoryCode() + ", team: " + inputData.getTeamCode() + ", pit: " + inputData.getPitCode()
+        + ", row: " + inputData.getRowCode() + ", cellar: " + inputData.getCellarCode());
+        try{
+            if(commThread.isAlive()){
+                retString = setSensorInfo(inputData);
+            }else{
+                boolean started = commThread.startCommPort(SerialPortType.COM3.getDescription(), 9600, 8, 1, 0);
+                if(started){
+                    commThread.start();
+                    retString = setSensorInfo(inputData);
+                }else{
+                    retString = setSensorInfo(inputData);
+                }
+            }
         }catch (Exception e){
             e.printStackTrace();
         }
         return retString;
+    }
+
+    private String setSensorInfo(SensorPosInfo posInfo){
+        String retString = "";
+        String workingType = "";
+        Sensor sensor = sensorService.find(posInfo.getSensorId());
+        int plantCode = posInfo.getPlantCode();
+        int territoryCode = posInfo.getTerritoryCode();
+        int teamCode = posInfo.getTeamCode();
+        int pitCode = posInfo.getPitCode();
+        int rowCode = posInfo.getRowCode();
+        int cellarCode = posInfo.getCellarCode();
+        final String rsPrefix = "7E381A"; //标志字符7E 帧格式38(发送) 帧长度0F
+        final String rsPartitionSendCode = "00"; //分割发送码
+        final String rsSufMessagefix = "AB10100300050A"; //信息层
+        String rsLocFix = validHexUnit(plantCode, 4) + validHexUnit(territoryCode, 4)
+                + validHexUnit(teamCode, 4) + "FF" + validHexUnit(pitCode, 2)
+                + validHexUnit(rowCode, 2) + validHexUnit(cellarCode, 2);
+        final String rsSuffix = "CCCC";
+        int CRC = CRC16Util.calcCrc16(HexUtils.hexStringToByte(rsSufMessagefix + rsLocFix));
+        String CRCCODE = HexUtils.bytesToHexString(CRC16Util.intToBytes(CRC));
+        String strMessage = rsPrefix + posInfo.getSensorCode() + rsPartitionSendCode + rsSufMessagefix + rsLocFix
+                + CRCCODE + rsSuffix;
+        logger.info(strMessage);
+        byte[] byteMessage = HexUtils.hexStringToByte(strMessage.trim());
+        commThread.write(byteMessage);
+        logger.info("Rs发送数据：" + HexUtils.bytesToHexString(byteMessage));
+        try {
+            Thread.sleep(4000);
+            BlockingQueue<byte[]> respList = commThread.getResponseQueue();
+
+            StringBuilder sb = new StringBuilder();
+            while (respList.size() > 0) {
+                sb.append(HexUtils.bytesToHexString(respList.take()));
+            }
+
+            logger.info("rs接收数据Response：" + sb.toString());
+
+            byte[] respMessage = HexUtils.hexStringToByte(sb.toString());
+            logger.info("rs接收数据长度： " + respMessage.length);
+            //error length : 36
+            if (respMessage.length != 39) {
+                logger.info("sen occur a problem, try to save a zero value");
+                retString = "当前录入设备异常，请处理后录入.（可能原因：1.电量不足。2.设备故障。）";
+            }
+            else{
+                logger.info("change sensor info success!");
+                sensor.setSensorWorkingType(SensorWorkingType.SENSOR_WAS_DELETED);
+                sensorService.update(sensor);
+
+                String centerUrl = serverUrl+loadUploadDeleteSensor;
+                JSONObject deleteSensorJson = new JSONObject();
+                deleteSensorJson.put("operate", "deleteSensor");
+                deleteSensorJson.put("sensorId", sensor.getSensorId());
+                String retInfo = sendToServer(deleteSensorJson, centerUrl);
+                logger.info(retInfo);
+
+                LocalToServerSensorAdding sensorAdding = new LocalToServerSensorAdding();
+                Plant plant = plantService.getPlantByCode(plantCode);
+                if(plant != null){
+                    Territory territory = territoryService.getTerritoryByPlantAndTerritoryCode(plant, territoryCode);
+                    if(territory != null){
+                        Team team = teamService.getTeamsByTerritoryAndTeamCode(territory, teamCode);
+                    if(team != null)
+                    {
+                        //plant与当前打开页面session中的plant作对比
+                        Pit pit = pitService.getPitByTeamAndPitCode(team, pitCode);
+                        if (pit != null){
+                            //不为空说明pit值重复，则进入下一步 Row 校验
+                            logger.info("垮号已存在，进入该垮号，进行 Row 比较......");
+                            Row row = rowService.getRowByPitAndRowCode(pit, rowCode);
+                            if(row != null){
+                                logger.info("排号已存在，进入该垮号，进行 cellar 比较......");
+                                Cellar cellar = cellarService.getCellarByRowAndCellarCode(row, cellarCode);
+                                if(cellar != null){
+                                    Sensor sensor1 = sensorService.getWorkingSensorByCellar(cellar);
+                                    if(sensor1 != null)
+                                    {
+                                        retString = "窖内已存在设备，请重新录入.";
+                                        logger.info(retString);
+                                        return retString;
+                                    }else {
+                                        ServerPlant serverPlant = new ServerPlant();
+                                        serverPlant.setPlantCode(plant.getPlantCode());
+                                        serverPlant.setLocalPlantId(plant.getPlantId());
+                                        sensorAdding.setServerPlant(serverPlant);
+
+                                        ServerTerritory serverTerritory = new ServerTerritory();
+                                        serverTerritory.setTerritoryId(HttpClientUtils.getUUID());
+                                        serverTerritory.setTerritoryCode(territoryCode);
+                                        serverTerritory.setLocalTerritoryId(territory.getTerritoryId());
+                                        sensorAdding.setServerTerritory(serverTerritory);
+
+                                        ServerTeam serverTeam = new ServerTeam();
+                                        serverTeam.setTeamId(HttpClientUtils.getUUID());
+                                        serverTeam.setTeamCode(teamCode);
+                                        serverTeam.setLocalTeamId(team.getTeamId());
+                                        sensorAdding.setServerTeam(serverTeam);
+
+                                        ServerPit serverPit = new ServerPit();
+                                        serverPit.setPitId(HttpClientUtils.getUUID());
+                                        serverPit.setPitCode(pit.getPitCode());
+                                        serverPit.setLocalPitId(pit.getPitId());
+                                        sensorAdding.setServerPit(serverPit);
+
+                                        ServerRow serverRow = new ServerRow();
+                                        serverRow.setRowId(HttpClientUtils.getUUID());
+                                        serverRow.setRowCode(rowCode);
+                                        serverRow.setLocalRowId(row.getRowId());
+                                        sensorAdding.setServerRow(serverRow);
+
+                                        ServerCellar serverCellar = new ServerCellar();
+                                        serverCellar.setCellarId(HttpClientUtils.getUUID());
+                                        serverCellar.setCellarCode(cellarCode);
+                                        serverCellar.setLocalCellarId(cellar.getCellarId());
+                                        sensorAdding.setServerCellar(serverCellar);
+
+                                        Sensor sensor2 = new Sensor();
+                                        sensor2.setSensorId(HttpClientUtils.getUUID());
+                                        sensor2.setSensorCode(sensor.getSensorCode());
+                                        sensor2.setFrequencyPoint(sensor.getFrequencyPoint());
+                                        sensor2.setWorkRate(sensor.getWorkRate());
+                                        sensor2.setActivatePeriod(sensor.getActivatePeriod());
+                                        sensor2.setWorkingHours(sensor.getWorkingHours());
+                                        sensor2.setCellar(cellar);
+                                        sensor2.setBatteryState(sensor.getBatteryState());
+                                        sensor2.setCreatedTime(new Date());
+                                        sensor2.setSensorWorkingType(SensorWorkingType.SENSOR_IS_WORKING);
+                                        sensorService.save(sensor2);
+
+                                        ServerSensor serverSensor = new ServerSensor();
+                                        serverSensor.setSensorId(HttpClientUtils.getUUID());
+                                        serverSensor.setFrequencyPoint(sensor.getFrequencyPoint());
+                                        serverSensor.setWorkingHours(sensor.getWorkingHours());
+                                        serverSensor.setWorkRate(sensor.getWorkRate());
+                                        serverSensor.setActivatePeriod(sensor.getActivatePeriod());
+                                        serverSensor.setSensorCode(sensor.getSensorCode());
+                                        serverSensor.setBatteryState(sensor.getBatteryState());
+                                        serverSensor.setLocalSensorId(sensor2.getSensorId());
+                                        sensorAdding.setServerSensor(serverSensor);
+
+                                        //已删除设备同窖重录
+                                        sensorAdding.setSavingType("deleted");
+
+                                        logger.info("Start send sensor value to server.....");
+                                        String retInfoSensor = "";
+                                        JSONObject jsonObjectServerSensor = (JSONObject) JSONObject.toJSON(sensorAdding);
+                                        logger.info("jsonarray:   " + jsonObjectServerSensor);
+                                        String centerUrlSensor = serverUrl + localUploadServerValue;
+                                        Map<String, String> headParamsSensor = new HashMap<>();
+                                        headParamsSensor.put("Content-type", "application/json; charset=utf-8");
+                                        headParamsSensor.put("SessionId", HttpClientUtils.getSessionId());
+                                        retInfoSensor = HttpClientUtils.getInstance().doPostWithJson(centerUrlSensor, headParamsSensor, jsonObjectServerSensor);
+                                        logger.info(">>>>>>>>>>Upload state: " + retInfoSensor);
+
+                                        retString = "异窖信息修改成功.";
+                                        logger.info(retString);
+                                        return retString;
+                                    }
+                                } else{
+                                    ServerPlant serverPlant = new ServerPlant();
+                                    serverPlant.setPlantCode(plant.getPlantCode());
+                                    serverPlant.setLocalPlantId(plant.getPlantId());
+                                    sensorAdding.setServerPlant(serverPlant);
+
+                                    ServerTerritory serverTerritory = new ServerTerritory();
+                                    serverTerritory.setTerritoryId(HttpClientUtils.getUUID());
+                                    serverTerritory.setTerritoryCode(territoryCode);
+                                    serverTerritory.setLocalTerritoryId(territory.getTerritoryId());
+                                    sensorAdding.setServerTerritory(serverTerritory);
+
+                                    ServerTeam serverTeam = new ServerTeam();
+                                    serverTeam.setTeamId(HttpClientUtils.getUUID());
+                                    serverTeam.setTeamCode(teamCode);
+                                    serverTeam.setLocalTeamId(team.getTeamId());
+                                    sensorAdding.setServerTeam(serverTeam);
+
+                                    ServerPit serverPit = new ServerPit();
+                                    serverPit.setPitId(HttpClientUtils.getUUID());
+                                    serverPit.setPitCode(pit.getPitCode());
+                                    serverPit.setLocalPitId(pit.getPitId());
+                                    sensorAdding.setServerPit(serverPit);
+
+                                    ServerRow serverRow = new ServerRow();
+                                    serverRow.setRowId(HttpClientUtils.getUUID());
+                                    serverRow.setRowCode(rowCode);
+                                    serverRow.setLocalRowId(row.getRowId());
+                                    sensorAdding.setServerRow(serverRow);
+
+
+                                    Cellar cellar1 = new Cellar();
+                                    cellar1.setCellarId(HttpClientUtils.getUUID());
+                                    cellar1.setCellarCode(cellarCode);
+                                    cellar1.setRow(row);
+                                    cellarService.save(cellar1);
+
+                                    ServerCellar serverCellar = new ServerCellar();
+                                    serverCellar.setCellarId(HttpClientUtils.getUUID());
+                                    serverCellar.setCellarCode(cellarCode);
+                                    serverCellar.setLocalCellarId(cellar1.getCellarId());
+                                    sensorAdding.setServerCellar(serverCellar);
+
+                                    Sensor sensor1 = new Sensor();
+                                    sensor1.setSensorId(HttpClientUtils.getUUID());
+                                    sensor1.setSensorCode(sensor.getSensorCode());
+                                    sensor1.setFrequencyPoint(sensor.getFrequencyPoint());
+                                    sensor1.setWorkRate(sensor.getWorkRate());
+                                    sensor1.setActivatePeriod(sensor.getActivatePeriod());
+                                    sensor1.setWorkingHours(sensor.getWorkingHours());
+                                    sensor1.setCellar(cellar1);
+                                    sensor1.setBatteryState(sensor.getBatteryState());
+                                    sensor1.setCreatedTime(new Date());
+                                    sensor1.setSensorWorkingType(SensorWorkingType.SENSOR_IS_WORKING);
+                                    sensorService.save(sensor1);
+
+                                    ServerSensor serverSensor = new ServerSensor();
+                                    serverSensor.setSensorId(HttpClientUtils.getUUID());
+                                    serverSensor.setFrequencyPoint(sensor.getFrequencyPoint());
+                                    serverSensor.setWorkingHours(sensor.getWorkingHours());
+                                    serverSensor.setWorkRate(sensor.getWorkRate());
+                                    serverSensor.setActivatePeriod(sensor.getActivatePeriod());
+                                    serverSensor.setSensorCode(sensor.getSensorCode());
+                                    serverSensor.setBatteryState(sensor.getBatteryState());
+                                    serverSensor.setLocalSensorId(sensor1.getSensorId());
+                                    sensorAdding.setServerSensor(serverSensor);
+
+                                    //普通录入
+                                    sensorAdding.setSavingType("normal");
+
+                                    logger.info("Start send sensor value to server.....");
+                                    String retInfoSensor = "";
+                                    JSONObject jsonObjectServerSensor = (JSONObject) JSONObject.toJSON(sensorAdding);
+                                    logger.info("jsonarray:   "+ jsonObjectServerSensor);
+                                    String centerUrlSensor = serverUrl+localUploadServerValue;
+                                    Map<String, String> headParamsSensor = new HashMap<>();
+                                    headParamsSensor.put("Content-type", "application/json; charset=utf-8");
+                                    headParamsSensor.put("SessionId", HttpClientUtils.getSessionId());
+                                    retInfoSensor = HttpClientUtils.getInstance().doPostWithJson(centerUrlSensor, headParamsSensor, jsonObjectServerSensor);
+                                    logger.info(">>>>>>>>>>Upload state: " + retInfoSensor);
+
+                                    retString = "异窖信息修改成功.";
+                                    logger.info(retString);
+                                    return retString;
+                                }
+                            } else {
+                                ServerPlant serverPlant = new ServerPlant();
+                                serverPlant.setPlantCode(plant.getPlantCode());
+                                serverPlant.setLocalPlantId(plant.getPlantId());
+                                sensorAdding.setServerPlant(serverPlant);
+
+                                ServerTerritory serverTerritory = new ServerTerritory();
+                                serverTerritory.setTerritoryId(HttpClientUtils.getUUID());
+                                serverTerritory.setTerritoryCode(territoryCode);
+                                serverTerritory.setLocalTerritoryId(territory.getTerritoryId());
+                                sensorAdding.setServerTerritory(serverTerritory);
+
+                                ServerTeam serverTeam = new ServerTeam();
+                                serverTeam.setTeamId(HttpClientUtils.getUUID());
+                                serverTeam.setTeamCode(teamCode);
+                                serverTeam.setLocalTeamId(team.getTeamId());
+                                sensorAdding.setServerTeam(serverTeam);
+
+                                ServerPit serverPit = new ServerPit();
+                                serverPit.setPitId(HttpClientUtils.getUUID());
+                                serverPit.setPitCode(pit.getPitCode());
+                                serverPit.setLocalPitId(pit.getPitId());
+                                sensorAdding.setServerPit(serverPit);
+
+                                Row row1 = new Row();
+                                row1.setPit(pit);
+                                row1.setRowId(HttpClientUtils.getUUID());
+                                row1.setRowCode(rowCode);
+                                rowService.save(row1);
+
+                                ServerRow serverRow = new ServerRow();
+                                serverRow.setRowId(HttpClientUtils.getUUID());
+                                serverRow.setRowCode(rowCode);
+                                serverRow.setLocalRowId(row1.getRowId());
+                                sensorAdding.setServerRow(serverRow);
+
+                                Cellar cellar1 = new Cellar();
+                                cellar1.setCellarId(HttpClientUtils.getUUID());
+                                cellar1.setCellarCode(cellarCode);
+                                cellar1.setRow(row1);
+                                cellarService.save(cellar1);
+
+                                ServerCellar serverCellar = new ServerCellar();
+                                serverCellar.setCellarId(HttpClientUtils.getUUID());
+                                serverCellar.setCellarCode(cellarCode);
+                                serverCellar.setLocalCellarId(cellar1.getCellarId());
+                                sensorAdding.setServerCellar(serverCellar);
+
+                                Sensor sensor1 = new Sensor();
+                                sensor1.setSensorId(HttpClientUtils.getUUID());
+                                sensor1.setSensorCode(sensor.getSensorCode());
+                                sensor1.setFrequencyPoint(sensor.getFrequencyPoint());
+                                sensor1.setWorkRate(sensor.getWorkRate());
+                                sensor1.setActivatePeriod(sensor.getActivatePeriod());
+                                sensor1.setWorkingHours(sensor.getWorkingHours());
+                                sensor1.setCellar(cellar1);
+                                sensor1.setBatteryState(sensor.getBatteryState());
+                                sensor1.setCreatedTime(new Date());
+                                sensor1.setSensorWorkingType(SensorWorkingType.SENSOR_IS_WORKING);
+                                sensorService.save(sensor1);
+
+                                ServerSensor serverSensor = new ServerSensor();
+                                serverSensor.setSensorId(HttpClientUtils.getUUID());
+                                serverSensor.setFrequencyPoint(sensor.getFrequencyPoint());
+                                serverSensor.setWorkingHours(sensor.getWorkingHours());
+                                serverSensor.setWorkRate(sensor.getWorkRate());
+                                serverSensor.setActivatePeriod(sensor.getActivatePeriod());
+                                serverSensor.setSensorCode(sensor.getSensorCode());
+                                serverSensor.setBatteryState(sensor.getBatteryState());
+                                serverSensor.setLocalSensorId(sensor1.getSensorId());
+                                sensorAdding.setServerSensor(serverSensor);
+
+                                logger.info("Start send sensor value to server.....");
+                                String retInfoSensor = "";
+                                JSONObject jsonObjectServerSensor = (JSONObject) JSONObject.toJSON(sensorAdding);
+                                logger.info("jsonarray:   "+ jsonObjectServerSensor);
+                                String centerUrlSensor = serverUrl+localUploadServerValue;
+                                Map<String, String> headParamsSensor = new HashMap<>();
+                                headParamsSensor.put("Content-type", "application/json; charset=utf-8");
+                                headParamsSensor.put("SessionId", HttpClientUtils.getSessionId());
+                                retInfoSensor = HttpClientUtils.getInstance().doPostWithJson(centerUrlSensor, headParamsSensor, jsonObjectServerSensor);
+                                logger.info(">>>>>>>>>>Upload state: " + retInfoSensor);
+
+                                retString = "异排信息修改成功.";
+                                logger.info(retString);
+                                return retString;
+                            }
+                        } else{
+                            ServerPlant serverPlant = new ServerPlant();
+                            serverPlant.setPlantCode(plant.getPlantCode());
+                            serverPlant.setLocalPlantId(plant.getPlantId());
+                            sensorAdding.setServerPlant(serverPlant);
+
+                            ServerTerritory serverTerritory = new ServerTerritory();
+                            serverTerritory.setTerritoryId(HttpClientUtils.getUUID());
+                            serverTerritory.setTerritoryCode(territoryCode);
+                            serverTerritory.setLocalTerritoryId(territory.getTerritoryId());
+                            sensorAdding.setServerTerritory(serverTerritory);
+
+                            ServerTeam serverTeam = new ServerTeam();
+                            serverTeam.setTeamId(HttpClientUtils.getUUID());
+                            serverTeam.setTeamCode(teamCode);
+                            serverTeam.setLocalTeamId(team.getTeamId());
+                            sensorAdding.setServerTeam(serverTeam);
+
+                            Pit pit1 = new Pit();
+                            pit1.setPitId(HttpClientUtils.getUUID());
+                            pit1.setPitCode(pitCode);
+                            pit1.setTeam(team);
+                            pitService.save(pit1);
+
+                            ServerPit serverPit = new ServerPit();
+                            serverPit.setPitId(HttpClientUtils.getUUID());
+                            serverPit.setPitCode(pit1.getPitCode());
+                            serverPit.setLocalPitId(pit1.getPitId());
+                            sensorAdding.setServerPit(serverPit);
+
+                            Row row1 = new Row();
+                            row1.setPit(pit1);
+                            row1.setRowId(HttpClientUtils.getUUID());
+                            row1.setRowCode(rowCode);
+                            rowService.save(row1);
+
+                            ServerRow serverRow = new ServerRow();
+                            serverRow.setRowId(HttpClientUtils.getUUID());
+                            serverRow.setRowCode(rowCode);
+                            serverRow.setLocalRowId(row1.getRowId());
+                            sensorAdding.setServerRow(serverRow);
+
+                            Cellar cellar1 = new Cellar();
+                            cellar1.setCellarId(HttpClientUtils.getUUID());
+                            cellar1.setCellarCode(cellarCode);
+                            cellar1.setRow(row1);
+                            cellarService.save(cellar1);
+
+                            ServerCellar serverCellar = new ServerCellar();
+                            serverCellar.setCellarId(HttpClientUtils.getUUID());
+                            serverCellar.setCellarCode(cellarCode);
+                            serverCellar.setLocalCellarId(cellar1.getCellarId());
+                            sensorAdding.setServerCellar(serverCellar);
+
+                            Sensor sensor1 = new Sensor();
+                            sensor1.setSensorId(HttpClientUtils.getUUID());
+                            sensor1.setSensorCode(sensor.getSensorCode());
+                            sensor1.setFrequencyPoint(sensor.getFrequencyPoint());
+                            sensor1.setWorkRate(sensor.getWorkRate());
+                            sensor1.setActivatePeriod(sensor.getActivatePeriod());
+                            sensor1.setWorkingHours(sensor.getWorkingHours());
+                            sensor1.setCellar(cellar1);
+                            sensor1.setBatteryState(sensor.getBatteryState());
+                            sensor1.setCreatedTime(new Date());
+                            sensor1.setSensorWorkingType(SensorWorkingType.SENSOR_IS_WORKING);
+                            sensorService.save(sensor1);
+
+                            ServerSensor serverSensor = new ServerSensor();
+                            serverSensor.setSensorId(HttpClientUtils.getUUID());
+                            serverSensor.setFrequencyPoint(sensor.getFrequencyPoint());
+                            serverSensor.setWorkingHours(sensor.getWorkingHours());
+                            serverSensor.setWorkRate(sensor.getWorkRate());
+                            serverSensor.setActivatePeriod(sensor.getActivatePeriod());
+                            serverSensor.setSensorCode(sensor.getSensorCode());
+                            serverSensor.setBatteryState(sensor.getBatteryState());
+                            serverSensor.setLocalSensorId(sensor1.getSensorId());
+                            sensorAdding.setServerSensor(serverSensor);
+
+                            logger.info("Start send sensor value to server.....");
+                            String retInfoSensor = "";
+                            JSONObject jsonObjectServerSensor = (JSONObject) JSONObject.toJSON(sensorAdding);
+                            logger.info("jsonarray:   "+ jsonObjectServerSensor);
+                            String centerUrlSensor = serverUrl+localUploadServerValue;
+                            Map<String, String> headParamsSensor = new HashMap<>();
+                            headParamsSensor.put("Content-type", "application/json; charset=utf-8");
+                            headParamsSensor.put("SessionId", HttpClientUtils.getSessionId());
+                            retInfoSensor = HttpClientUtils.getInstance().doPostWithJson(centerUrlSensor, headParamsSensor, jsonObjectServerSensor);
+                            logger.info(">>>>>>>>>>Upload state: " + retInfoSensor);
+
+                            retString = "异垮信息修改成功.";
+                            logger.info(retString);
+                            return retString;
+                        }
+                    }else {
+                        ServerPlant serverPlant = new ServerPlant();
+                        serverPlant.setPlantCode(plant.getPlantCode());
+                        serverPlant.setLocalPlantId(plant.getPlantId());
+                        sensorAdding.setServerPlant(serverPlant);
+
+                        ServerTerritory serverTerritory = new ServerTerritory();
+                        serverTerritory.setTerritoryId(HttpClientUtils.getUUID());
+                        serverTerritory.setTerritoryCode(territoryCode);
+                        serverTerritory.setLocalTerritoryId(territory.getTerritoryId());
+                        sensorAdding.setServerTerritory(serverTerritory);
+
+                        Team team1 = new Team();
+                        team1.setTerritory(territory);
+                        team1.setTeamCode(teamCode);
+                        team1.setTeamId(HttpClientUtils.getUUID());
+                        teamService.save(team1);
+
+                        ServerTeam serverTeam = new ServerTeam();
+                        serverTeam.setTeamId(HttpClientUtils.getUUID());
+                        serverTeam.setTeamCode(teamCode);
+                        serverTeam.setLocalTeamId(team1.getTeamId());
+                        sensorAdding.setServerTeam(serverTeam);
+
+                        Pit pit1 = new Pit();
+                        pit1.setPitId(HttpClientUtils.getUUID());
+                        pit1.setPitCode(pitCode);
+                        pit1.setTeam(team1);
+                        pitService.save(pit1);
+
+                        ServerPit serverPit = new ServerPit();
+                        serverPit.setPitId(HttpClientUtils.getUUID());
+                        serverPit.setPitCode(pit1.getPitCode());
+                        serverPit.setLocalPitId(pit1.getPitId());
+                        sensorAdding.setServerPit(serverPit);
+
+                        Row row1 = new Row();
+                        row1.setPit(pit1);
+                        row1.setRowId(HttpClientUtils.getUUID());
+                        row1.setRowCode(rowCode);
+                        rowService.save(row1);
+
+                        ServerRow serverRow = new ServerRow();
+                        serverRow.setRowId(HttpClientUtils.getUUID());
+                        serverRow.setRowCode(rowCode);
+                        serverRow.setLocalRowId(row1.getRowId());
+                        sensorAdding.setServerRow(serverRow);
+
+                        Cellar cellar1 = new Cellar();
+                        cellar1.setCellarId(HttpClientUtils.getUUID());
+                        cellar1.setCellarCode(cellarCode);
+                        cellar1.setRow(row1);
+                        cellarService.save(cellar1);
+
+                        ServerCellar serverCellar = new ServerCellar();
+                        serverCellar.setCellarId(HttpClientUtils.getUUID());
+                        serverCellar.setCellarCode(cellarCode);
+                        serverCellar.setLocalCellarId(cellar1.getCellarId());
+                        sensorAdding.setServerCellar(serverCellar);
+
+                        Sensor sensor1 = new Sensor();
+                        sensor1.setSensorId(HttpClientUtils.getUUID());
+                        sensor1.setSensorCode(sensor.getSensorCode());
+                        sensor1.setFrequencyPoint(sensor.getFrequencyPoint());
+                        sensor1.setWorkRate(sensor.getWorkRate());
+                        sensor1.setActivatePeriod(sensor.getActivatePeriod());
+                        sensor1.setWorkingHours(sensor.getWorkingHours());
+                        sensor1.setCellar(cellar1);
+                        sensor1.setBatteryState(sensor.getBatteryState());
+                        sensor1.setCreatedTime(new Date());
+                        sensor1.setSensorWorkingType(SensorWorkingType.SENSOR_IS_WORKING);
+                        sensorService.save(sensor1);
+
+                        ServerSensor serverSensor = new ServerSensor();
+                        serverSensor.setSensorId(HttpClientUtils.getUUID());
+                        serverSensor.setFrequencyPoint(sensor.getFrequencyPoint());
+                        serverSensor.setWorkingHours(sensor.getWorkingHours());
+                        serverSensor.setWorkRate(sensor.getWorkRate());
+                        serverSensor.setActivatePeriod(sensor.getActivatePeriod());
+                        serverSensor.setSensorCode(sensor.getSensorCode());
+                        serverSensor.setBatteryState(sensor.getBatteryState());
+                        serverSensor.setLocalSensorId(sensor1.getSensorId());
+                        sensorAdding.setServerSensor(serverSensor);
+
+                        logger.info("Start send sensor value to server.....");
+                        String retInfoSensor = "";
+                        JSONObject jsonObjectServerSensor = (JSONObject) JSONObject.toJSON(sensorAdding);
+                        logger.info("jsonarray:   "+ jsonObjectServerSensor);
+                        String centerUrlSensor = serverUrl+localUploadServerValue;
+                        Map<String, String> headParamsSensor = new HashMap<>();
+                        headParamsSensor.put("Content-type", "application/json; charset=utf-8");
+                        headParamsSensor.put("SessionId", HttpClientUtils.getSessionId());
+                        retInfoSensor = HttpClientUtils.getInstance().doPostWithJson(centerUrlSensor, headParamsSensor, jsonObjectServerSensor);
+                        logger.info(">>>>>>>>>>Upload state: " + retInfoSensor);
+
+                        retString = "异班组信息修改成功.";
+                        logger.info(retString);
+                        return retString;
+                    }
+                }else {
+                    ServerPlant serverPlant = new ServerPlant();
+                    serverPlant.setPlantCode(plant.getPlantCode());
+                    serverPlant.setLocalPlantId(plant.getPlantId());
+                    sensorAdding.setServerPlant(serverPlant);
+
+                    Territory territory1 = new Territory();
+                    territory1.setTerritoryId(HttpClientUtils.getUUID());
+                    territory1.setTerritoryCode(territoryCode);
+                    territory1.setPlant(plant);
+                    territoryService.save(territory1);
+
+                    ServerTerritory serverTerritory = new ServerTerritory();
+                    serverTerritory.setTerritoryId(HttpClientUtils.getUUID());
+                    serverTerritory.setTerritoryCode(territoryCode);
+                    serverTerritory.setLocalTerritoryId(territory1.getTerritoryId());
+                    sensorAdding.setServerTerritory(serverTerritory);
+
+                    Team team1 = new Team();
+                    team1.setTerritory(territory1);
+                    team1.setTeamCode(teamCode);
+                    team1.setTeamId(HttpClientUtils.getUUID());
+                    teamService.save(team1);
+
+                    ServerTeam serverTeam = new ServerTeam();
+                    serverTeam.setTeamId(HttpClientUtils.getUUID());
+                    serverTeam.setTeamCode(teamCode);
+                    serverTeam.setLocalTeamId(team1.getTeamId());
+                    sensorAdding.setServerTeam(serverTeam);
+
+                    Pit pit1 = new Pit();
+                    pit1.setPitId(HttpClientUtils.getUUID());
+                    pit1.setPitCode(pitCode);
+                    pit1.setTeam(team1);
+                    pitService.save(pit1);
+
+                    ServerPit serverPit = new ServerPit();
+                    serverPit.setPitId(HttpClientUtils.getUUID());
+                    serverPit.setPitCode(pit1.getPitCode());
+                    serverPit.setLocalPitId(pit1.getPitId());
+                    sensorAdding.setServerPit(serverPit);
+
+                    Row row1 = new Row();
+                    row1.setPit(pit1);
+                    row1.setRowId(HttpClientUtils.getUUID());
+                    row1.setRowCode(rowCode);
+                    rowService.save(row1);
+
+                    ServerRow serverRow = new ServerRow();
+                    serverRow.setRowId(HttpClientUtils.getUUID());
+                    serverRow.setRowCode(rowCode);
+                    serverRow.setLocalRowId(row1.getRowId());
+                    sensorAdding.setServerRow(serverRow);
+
+                    Cellar cellar1 = new Cellar();
+                    cellar1.setCellarId(HttpClientUtils.getUUID());
+                    cellar1.setCellarCode(cellarCode);
+                    cellar1.setRow(row1);
+                    cellarService.save(cellar1);
+
+                    ServerCellar serverCellar = new ServerCellar();
+                    serverCellar.setCellarId(HttpClientUtils.getUUID());
+                    serverCellar.setCellarCode(cellarCode);
+                    serverCellar.setLocalCellarId(cellar1.getCellarId());
+                    sensorAdding.setServerCellar(serverCellar);
+
+                    Sensor sensor1 = new Sensor();
+                    sensor1.setSensorId(HttpClientUtils.getUUID());
+                    sensor1.setSensorCode(sensor.getSensorCode());
+                    sensor1.setFrequencyPoint(sensor.getFrequencyPoint());
+                    sensor1.setWorkRate(sensor.getWorkRate());
+                    sensor1.setActivatePeriod(sensor.getActivatePeriod());
+                    sensor1.setWorkingHours(sensor.getWorkingHours());
+                    sensor1.setCellar(cellar1);
+                    sensor1.setBatteryState(sensor.getBatteryState());
+                    sensor1.setCreatedTime(new Date());
+                    sensor1.setSensorWorkingType(SensorWorkingType.SENSOR_IS_WORKING);
+                    sensorService.save(sensor1);
+
+                    ServerSensor serverSensor = new ServerSensor();
+                    serverSensor.setSensorId(HttpClientUtils.getUUID());
+                    serverSensor.setFrequencyPoint(sensor.getFrequencyPoint());
+                    serverSensor.setWorkingHours(sensor.getWorkingHours());
+                    serverSensor.setWorkRate(sensor.getWorkRate());
+                    serverSensor.setActivatePeriod(sensor.getActivatePeriod());
+                    serverSensor.setSensorCode(sensor.getSensorCode());
+                    serverSensor.setBatteryState(sensor.getBatteryState());
+                    serverSensor.setLocalSensorId(sensor1.getSensorId());
+                    sensorAdding.setServerSensor(serverSensor);
+
+                    logger.info("Start send sensor value to server.....");
+                    String retInfoSensor = "";
+                    JSONObject jsonObjectServerSensor = (JSONObject) JSONObject.toJSON(sensorAdding);
+                    logger.info("jsonarray:   "+ jsonObjectServerSensor);
+                    String centerUrlSensor = serverUrl+localUploadServerValue;
+                    Map<String, String> headParamsSensor = new HashMap<>();
+                    headParamsSensor.put("Content-type", "application/json; charset=utf-8");
+                    headParamsSensor.put("SessionId", HttpClientUtils.getSessionId());
+                    retInfoSensor = HttpClientUtils.getInstance().doPostWithJson(centerUrlSensor, headParamsSensor, jsonObjectServerSensor);
+                    logger.info(">>>>>>>>>>Upload state: " + retInfoSensor);
+
+                    retString = "异责任区信息修改成功.";
+                    logger.info(retString);
+                    return retString;
+                }
+                }else{
+                    Plant plant1 = new Plant();
+                    plant1.setPlantCode(plantCode);
+                    plant1.setPlantId(HttpClientUtils.getUUID());
+                    plant1.setPlantName(plantCode + "车间");
+                    int numberX = new Random().nextInt(1000) + 1;
+                    int numberY = new Random().nextInt(700) + 1;
+                    plant1.setClientX(numberX);
+                    plant1.setClientY(numberY);
+                    plantService.save(plant1);
+
+                    ServerPlant serverPlant = new ServerPlant();
+                    serverPlant.setPlantId(HttpClientUtils.getUUID());
+                    serverPlant.setPlantCode(plant1.getPlantCode());
+                    serverPlant.setLocalPlantId(plant1.getPlantId());
+                    serverPlant.setPlantName(plantCode + "车间");
+                    serverPlant.setClientX(numberX);
+                    serverPlant.setClientY(numberY);
+                    sensorAdding.setServerPlant(serverPlant);
+
+                    Territory territory1 = new Territory();
+                    territory1.setTerritoryId(HttpClientUtils.getUUID());
+                    territory1.setTerritoryCode(territoryCode);
+                    territory1.setPlant(plant1);
+                    territoryService.save(territory1);
+
+                    ServerTerritory serverTerritory = new ServerTerritory();
+                    serverTerritory.setTerritoryId(HttpClientUtils.getUUID());
+                    serverTerritory.setTerritoryCode(territoryCode);
+                    serverTerritory.setLocalTerritoryId(territory1.getTerritoryId());
+                    sensorAdding.setServerTerritory(serverTerritory);
+
+                    Team team1 = new Team();
+                    team1.setTerritory(territory1);
+                    team1.setTeamCode(teamCode);
+                    team1.setTeamId(HttpClientUtils.getUUID());
+                    teamService.save(team1);
+
+                    ServerTeam serverTeam = new ServerTeam();
+                    serverTeam.setTeamId(HttpClientUtils.getUUID());
+                    serverTeam.setTeamCode(teamCode);
+                    serverTeam.setLocalTeamId(team1.getTeamId());
+                    sensorAdding.setServerTeam(serverTeam);
+
+                    Pit pit1 = new Pit();
+                    pit1.setPitId(HttpClientUtils.getUUID());
+                    pit1.setPitCode(pitCode);
+                    pit1.setTeam(team1);
+                    pitService.save(pit1);
+
+                    ServerPit serverPit = new ServerPit();
+                    serverPit.setPitId(HttpClientUtils.getUUID());
+                    serverPit.setPitCode(pit1.getPitCode());
+                    serverPit.setLocalPitId(pit1.getPitId());
+                    sensorAdding.setServerPit(serverPit);
+
+                    Row row1 = new Row();
+                    row1.setPit(pit1);
+                    row1.setRowId(HttpClientUtils.getUUID());
+                    row1.setRowCode(rowCode);
+                    rowService.save(row1);
+
+                    ServerRow serverRow = new ServerRow();
+                    serverRow.setRowId(HttpClientUtils.getUUID());
+                    serverRow.setRowCode(rowCode);
+                    serverRow.setLocalRowId(row1.getRowId());
+                    sensorAdding.setServerRow(serverRow);
+
+                    Cellar cellar1 = new Cellar();
+                    cellar1.setCellarId(HttpClientUtils.getUUID());
+                    cellar1.setCellarCode(cellarCode);
+                    cellar1.setRow(row1);
+                    cellarService.save(cellar1);
+
+                    ServerCellar serverCellar = new ServerCellar();
+                    serverCellar.setCellarId(HttpClientUtils.getUUID());
+                    serverCellar.setCellarCode(cellarCode);
+                    serverCellar.setLocalCellarId(cellar1.getCellarId());
+                    sensorAdding.setServerCellar(serverCellar);
+
+                    Sensor sensor1 = new Sensor();
+                    sensor1.setSensorId(HttpClientUtils.getUUID());
+                    sensor1.setSensorCode(sensor.getSensorCode());
+                    sensor1.setFrequencyPoint(sensor.getFrequencyPoint());
+                    sensor1.setWorkRate(sensor.getWorkRate());
+                    sensor1.setActivatePeriod(sensor.getActivatePeriod());
+                    sensor1.setWorkingHours(sensor.getWorkingHours());
+                    sensor1.setCellar(cellar1);
+                    sensor1.setBatteryState(sensor.getBatteryState());
+                    sensor1.setCreatedTime(new Date());
+                    sensor1.setSensorWorkingType(SensorWorkingType.SENSOR_IS_WORKING);
+                    sensorService.save(sensor1);
+
+                    ServerSensor serverSensor = new ServerSensor();
+                    serverSensor.setSensorId(HttpClientUtils.getUUID());
+                    serverSensor.setFrequencyPoint(sensor.getFrequencyPoint());
+                    serverSensor.setWorkingHours(sensor.getWorkingHours());
+                    serverSensor.setWorkRate(sensor.getWorkRate());
+                    serverSensor.setActivatePeriod(sensor.getActivatePeriod());
+                    serverSensor.setSensorCode(sensor.getSensorCode());
+                    serverSensor.setBatteryState(sensor.getBatteryState());
+                    serverSensor.setLocalSensorId(sensor1.getSensorId());
+                    sensorAdding.setServerSensor(serverSensor);
+
+                    logger.info("Start send sensor value to server.....");
+                    String retInfoSensor = "";
+                    JSONObject jsonObjectServerSensor = (JSONObject) JSONObject.toJSON(sensorAdding);
+                    logger.info("jsonarray:   "+ jsonObjectServerSensor);
+                    String centerUrlSensor = serverUrl+localUploadServerValue;
+                    Map<String, String> headParamsSensor = new HashMap<>();
+                    headParamsSensor.put("Content-type", "application/json; charset=utf-8");
+                    headParamsSensor.put("SessionId", HttpClientUtils.getSessionId());
+                    retInfoSensor = HttpClientUtils.getInstance().doPostWithJson(centerUrlSensor, headParamsSensor, jsonObjectServerSensor);
+                    logger.info(">>>>>>>>>>Upload state: " + retInfoSensor);
+
+                    retString = "异车间信息修改成功.";
+                    logger.info(retString);
+                    return retString;
+                }
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+            retString =  "修改信息发生错误";
+        }
+        return retString;
+    }
+
+    private String validHexUnit(int i, int num){
+        String hex = Integer.toHexString(i);
+//转为大写
+        hex = hex.toUpperCase();
+//加长到四位字符，用0补齐
+        while (hex.length() < num) {
+            hex = "0" + hex;
+        }
+        return hex;
     }
 
     private String getSensorInfo(String sensorCode, String plantId) {
@@ -1518,4 +2504,5 @@ public class NewFactoryController  {
         headParams.put("SessionId", HttpClientUtils.getSessionId());
         return HttpClientUtils.getInstance().doPostWithJson(url, headParams, jsonObject);
     }
+
 }

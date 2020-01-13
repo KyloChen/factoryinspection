@@ -1,6 +1,7 @@
 package com.loohos.factoryinspection.service.impl;
 
 import com.loohos.factoryinspection.dao.DaoSupport;
+import com.loohos.factoryinspection.enumeration.SensorWorkingType;
 import com.loohos.factoryinspection.model.server.ServerCellar;
 import com.loohos.factoryinspection.model.server.ServerSensor;
 import com.loohos.factoryinspection.service.ServerSensorService;
@@ -34,6 +35,19 @@ public class ServerSensorServiceImpl extends DaoSupport<ServerSensor> implements
     public ServerSensor getSensorByCellar(ServerCellar cellar) {
         Query query = em.createQuery("select o from ServerSensor o where o.serverCellar = ?1");
         query.setParameter(1, cellar);
+        query.setMaxResults(1);
+        try {
+            return (ServerSensor) query.getSingleResult();
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+    @Override
+    public ServerSensor getWorkingSensorByCellar(ServerCellar cellar) {
+        Query query = em.createQuery("select o from ServerSensor o where o.sensorWorkingType = ?1 and o.serverCellar = ?2");
+        query.setParameter(1, SensorWorkingType.SENSOR_IS_WORKING);
+        query.setParameter(2, cellar);
         query.setMaxResults(1);
         try {
             return (ServerSensor) query.getSingleResult();

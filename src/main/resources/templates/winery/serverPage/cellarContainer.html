@@ -12,6 +12,7 @@
 
     <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/static/css/bootstrap-table.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/servercss/serverCellarContainer.css}">
 
     <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
     <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
@@ -44,142 +45,117 @@
         }
     </script>
 
-    <style>
-        /* 模态框样式 */
-        .loading {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            left: 0;
-            background-color: black;
-            opacity: 0.4;
-            z-index: 9999;
-        }
-
-        /* 动图样式 */
-        .loading .gif {
-            height: 32px;
-            width: 32px;
-            background: url(../static/img/loading.gif);
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            margin-left: -16px;
-            margin-top: -16px;
-            z-index: 9999;
-        }
-        .vertical-li{
-            list-style-image: none;
-            list-style-type: none;
-            float: left;
-        }
-        .sensor-img{
-            width: 68px;
-            height: 62px;
-        }
-        .cellar-part::-webkit-scrollbar {
-            display:none
-        }
-        .cellar-part{
-            overflow: scroll
-        }
-        .curCellarValue span{
-            display: block;
-            font-size: 10px;
-        }
-        .curCellarValue{
-            position: relative;
-            top: -2px;
-        }
-    </style>
 </head>
 <body>
-<div class="cellar-part" style="width: 100%;height: 47%;">
-    <ul class="cellar-container-ul">
-        <!--<li style="width: 60px;height: 550px;background:black url(../static/img/pitLeftPadding.png) 2px 2px no-repeat" class="vertical-li pit-container-border" ></li>-->
-        <li style="" class="" >
+<div class="cellar-part">
+    <ul>
+        <li>
              <span style="color: whitesmoke; " th:text="'第 '+${pit.pitCode}+' 垮'">
              </span>
             <ul>
-                <li style="display: inline-block; width: 100%; margin-left: 3%;" class=""  th:each="row:${cellarTree}">
-                    <span style="color: whitesmoke;float: left;margin-top: 19px;" th:text="'排 '+${row.key}+'&nbsp&nbsp'">
+                <li class="cellarTree" th:each="row:${cellarSensorTree}">
+                    <span class="row-text" th:text="'排 '+${row.key}+'&nbsp&nbsp'">
                     </span>
                     <ul>
-                        <li class="vertical-li"  th:each="cellar:${row.value}">
-                            <div style="cursor: pointer;width: 68px; height: 62px;" th:switch="${cellar.serverSensor.alarmLevel}" >
-                                <div class="sensor-img" th:case="0" style="color: darkgrey;font-size: 13px; padding: 5px 0;background:black url(../static/img/sensorIconBanned.png) 2px 2px no-repeat "
-                                     th:text="'窖'+${cellar.cellarCode}" th:attr="data-sensorId=${cellar.serverSensor.sensorId}" th:onclick="showCurve(this)" >
+                        <li class="vertical-li"  th:each="cellarSensor:${row.value}">
+                            <div class="cellar-container-div" th:switch="${cellarSensor.serverSensor.alarmLevel}" >
+                                <div class="sensor-img" th:case="0" style="color: darkgrey;background:black url(../static/img/sensorIconBanned.png) 2px 2px no-repeat "
+                                     th:text="'窖'+${cellarSensor.serverCellar.cellarCode}"
+                                     th:attr="data-sensorId=${cellarSensor.serverSensor.sensorId}" th:sensorId="${cellarSensor.serverSensor.sensorId}" th:onclick="showCurve(this)" >
                                 </div>
-                                <div class="sensor-img" th:case="1" style="color: forestgreen;font-size: 13px; padding: 5px 0;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.serverSensor.sensorId}" th:onclick="showCurve(this)" >
+                                <div class="sensor-img" th:case="1" style="color: forestgreen;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
+                                     th:attr="data-sensorId=${cellarSensor.serverSensor.sensorId}" th:sensorId="${cellarSensor.serverSensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>
-                                        <span th:text="'上: '+${cellar.serverSensor.curTopNodeValue}"></span>
-                                        <span th:text="'中: '+${cellar.serverSensor.curMidNodeValue}"></span>
-                                        <span th:text="'下: '+${cellar.serverSensor.curBotNodeValue}"></span>
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.serverCellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.serverSensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.serverSensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.serverSensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
-                                <div class="sensor-img" th:case="2" style="color: darkorange;font-size: 13px; padding: 5px 0;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.serverSensor.sensorId}" th:onclick="showCurve(this)" >
+                                <div class="sensor-img" th:case="2" style="color: darkorange;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
+                                     th:attr="data-sensorId=${cellarSensor.serverSensor.sensorId}" th:sensorId="${cellarSensor.serverSensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>
-                                        <span th:text="'上: '+${cellar.serverSensor.curTopNodeValue}"></span>
-                                        <span th:text="'中: '+${cellar.serverSensor.curMidNodeValue}"></span>
-                                        <span th:text="'下: '+${cellar.serverSensor.curBotNodeValue}"></span>
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.serverCellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.serverSensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.serverSensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.serverSensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
-                                <div class="sensor-img" th:case="3" style="color: red;font-size: 13px; padding: 5px 0;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.serverSensor.sensorId}" th:onclick="showCurve(this)" >
+                                <div class="sensor-img" th:case="3" style="color: red;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
+                                     th:attr="data-sensorId=${cellarSensor.serverSensor.sensorId}" th:sensorId="${cellarSensor.serverSensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>
-                                        <span th:text="'上: '+${cellar.serverSensor.curTopNodeValue}"></span>
-                                        <span th:text="'中: '+${cellar.serverSensor.curMidNodeValue}"></span>
-                                        <span th:text="'下: '+${cellar.serverSensor.curBotNodeValue}"></span>
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.serverCellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.serverSensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.serverSensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.serverSensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
-                                <div class="sensor-img" th:case="4" style="color: red;font-size: 13px; padding: 5px 0;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
-                                     th:attr="data-sensorId=${cellar.serverSensor.sensorId}" th:onclick="showCurve(this)" >
+                                <div class="sensor-img" th:case="4" style="color: red;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
+                                     th:attr="data-sensorId=${cellarSensor.serverSensor.sensorId}" th:sensorId="${cellarSensor.serverSensor.sensorId}" th:onclick="showCurve(this)" >
                                     <div class="curCellarValue">
-                                        <span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>
-                                        <span th:text="'上: '+${cellar.serverSensor.curTopNodeValue}"></span>
-                                        <span th:text="'中: '+${cellar.serverSensor.curMidNodeValue}"></span>
-                                        <span th:text="'下: '+${cellar.serverSensor.curBotNodeValue}"></span>
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.serverCellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.serverSensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.serverSensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.serverSensor.curBotNodeValue}"></span>
                                     </div>
                                 </div>
-                                <!--<div class="curCellarValue" th:case="1">-->
-                                <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
-                                <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
-                                <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
-                                <!--</div>-->
-                                <!--<div class="curCellarValue" th:case="2">-->
-                                <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
-                                <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
-                                <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
-                                <!--</div>-->
-                                <!--<div class="curCellarValue" th:case="3" >-->
-                                <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
-                                <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
-                                <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
-                                <!--</div>-->
-                                <!--<div class="curCellarValue" th:case="4" >-->
-                                <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
-                                <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
-                                <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
-                                <!--</div>-->
-                                <!--<img class="sensor-img" th:case="1" th:src="@{/static/img/sensorIcon.png}" th:alt="${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)">-->
-                                <!--<img class="sensor-img" th:case="2" th:src="@{/static/img/sensorIconOrange.png}" th:alt="${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)">-->
-                                <!--<img class="sensor-img" th:case="3" th:src="@{/static/img/sensorIconWarn.png}" th:alt="${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)">-->
-                                <!--<img class="sensor-img" th:case="4" th:src="@{/static/img/sensorIconWarn.png}" th:alt="${cellar.cellarCode}" th:attr="data-sensorId=${cellar.sensor.sensorId}" th:onclick="showCurve(this)">-->
                             </div>
                         </li>
                     </ul>
                 </li>
+                <!--<li class="cellarTree" th:each="row:${cellarTree}">-->
+                <!--<span class="row-text" th:text="'排 '+${row.key}+'&nbsp&nbsp'">-->
+                <!--</span>-->
+                <!--<ul>-->
+                <!--<li class="vertical-li"  th:each="cellar:${row.value}">-->
+                <!--<div class="cellar-container-div" th:switch="${cellar.sensor.alarmLevel}" >-->
+                <!--<div class="sensor-img" th:case="0" style="color: darkgrey;background:black url(../static/img/sensorIconBanned.png) 2px 2px no-repeat "-->
+                <!--th:text="'窖'+${cellar.cellarCode}"-->
+                <!--th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >-->
+                <!--</div>-->
+                <!--<div class="sensor-img" th:case="1" style="color: forestgreen;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "-->
+                <!--th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >-->
+                <!--<div class="curCellarValue">-->
+                <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
+                <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
+                <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
+                <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
+                <!--</div>-->
+                <!--</div>-->
+                <!--<div class="sensor-img" th:case="2" style="color: darkorange;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "-->
+                <!--th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >-->
+                <!--<div class="curCellarValue">-->
+                <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
+                <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
+                <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
+                <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
+                <!--</div>-->
+                <!--</div>-->
+                <!--<div class="sensor-img" th:case="3" style="color: red;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "-->
+                <!--th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >-->
+                <!--<div class="curCellarValue">-->
+                <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
+                <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
+                <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
+                <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
+                <!--</div>-->
+                <!--</div>-->
+                <!--<div class="sensor-img" th:case="4" style="color: red;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "-->
+                <!--th:attr="data-sensorId=${cellar.sensor.sensorId}" th:sensorId="${cellar.sensor.sensorId}" th:onclick="showCurve(this)" >-->
+                <!--<div class="curCellarValue">-->
+                <!--<span style="font-size: 13px" th:text="'窖'+${cellar.cellarCode}"></span>-->
+                <!--<span th:text="'上: '+${cellar.sensor.curTopNodeValue}"></span>-->
+                <!--<span th:text="'中: '+${cellar.sensor.curMidNodeValue}"></span>-->
+                <!--<span th:text="'下: '+${cellar.sensor.curBotNodeValue}"></span>-->
+                <!--</div>-->
+                <!--</div>-->
+                <!--</div>-->
+                <!--</li>-->
+                <!--</ul>-->
+                <!--</li>-->
             </ul>
         </li>
     </ul>
-    <!--<button class="btn btn-success" style="margin-top: 35px" th:attr="data-sensorId=${sensor.sensorId}" th:onclick="showSensorCurve(this)">今日趋势</button>-->
-    <!--<button class="btn btn-primary" style="margin-top: 35px" th:attr="data-sensorId=${sensor.sensorId}" th:onclick="showHisSensorCurve(this)">历史记录</button>-->
 </div>
 
 <div id="curve-container" class="curve-part" style="width: 100%;height: 53%;">

@@ -18,7 +18,6 @@ public class Sensor {
     private int activatePeriod;
     private int workingHours;
     private String batteryState = "00";
-    private String CRC16;
     private int alarmLevel = 4;
     private double curTopNodeValue = 100;
     private double curMidNodeValue = 100;
@@ -110,15 +109,6 @@ public class Sensor {
     }
 
     @Column
-    public String getCRC16() {
-        return CRC16;
-    }
-
-    public void setCRC16(String CRC16) {
-        this.CRC16 = CRC16;
-    }
-
-    @Column
     public int getAlarmLevel() {
         return alarmLevel;
     }
@@ -164,7 +154,7 @@ public class Sensor {
         this.sensorWorkingType = sensorWorkingType;
     }
 
-    @OneToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinColumn(name = "cellar_id")
     public Cellar getCellar() {
         return cellar;

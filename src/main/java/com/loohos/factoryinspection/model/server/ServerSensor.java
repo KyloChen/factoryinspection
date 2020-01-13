@@ -17,14 +17,13 @@ public class ServerSensor {
     private int activatePeriod;
     private int workingHours;
     private String batteryState = "00";
-    private int alarmLevel;
+    private int alarmLevel = 4;
     private double curTopNodeValue = 100;
     private double curMidNodeValue = 100;
     private double curBotNodeValue = 100;
     private SensorWorkingType sensorWorkingType;
     private ServerCellar serverCellar;
     private String localSensorId;
-    private String savingType;
 
     @Id
     @Column
@@ -154,7 +153,7 @@ public class ServerSensor {
         this.sensorWorkingType = sensorWorkingType;
     }
 
-    @OneToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinColumn(name = "cellar_id")
     public ServerCellar getServerCellar() {
         return serverCellar;
@@ -172,14 +171,4 @@ public class ServerSensor {
     public void setLocalSensorId(String localSensorId) {
         this.localSensorId = localSensorId;
     }
-
-    @Column
-    public String getSavingType() {
-        return savingType;
-    }
-
-    public void setSavingType(String savingType) {
-        this.savingType = savingType;
-    }
-
 }

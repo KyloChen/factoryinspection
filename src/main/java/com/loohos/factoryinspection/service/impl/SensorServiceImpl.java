@@ -20,14 +20,19 @@ public class SensorServiceImpl extends DaoSupport<Sensor> implements SensorServi
 
 
     @Override
-    public Sensor getSensorByCellar(Cellar cellar) {
+    public List<Sensor> getSensorByCellar(Cellar cellar) {
         Query query = em.createQuery("select o from Sensor o where o.cellar = ?1");
         query.setParameter(1, cellar);
-        query.setMaxResults(1);
-        try {
-            return (Sensor) query.getSingleResult();
+        try{
+            List<Sensor> sensors = query.getResultList();
+            if (sensors.size() > 0) {
+                return sensors;
+            } else {
+                return new ArrayList<>();
+            }
         }catch (Exception e){
-            return null;
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 
@@ -71,6 +76,19 @@ public class SensorServiceImpl extends DaoSupport<Sensor> implements SensorServi
         }catch (Exception e){
             e.printStackTrace();
             return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public Sensor getWorkingSensorByCellar(Cellar cellar) {
+        Query query = em.createQuery("select o from Sensor o where o.sensorWorkingType = ?1 and o.cellar = ?2");
+        query.setParameter(1, SensorWorkingType.SENSOR_IS_WORKING);
+        query.setParameter(2, cellar);
+        query.setMaxResults(1);
+        try {
+            return (Sensor) query.getSingleResult();
+        }catch (Exception e){
+            return null;
         }
     }
 }

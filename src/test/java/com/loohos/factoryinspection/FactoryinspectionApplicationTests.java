@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -120,4 +122,27 @@ class FactoryinspectionApplicationTests {
 				e.printStackTrace();
 			}
 		}
+
+	@Test
+	void validHexUnit(){
+	int i = 905;
+		//将十进制数转为十六进制数
+		String hex = Integer.toHexString(i);
+//转为大写
+		hex = hex.toUpperCase();
+//加长到四位字符，用0补齐
+		while (hex.length() < 4) {
+			hex = "0" + hex;
+		}
+	System.out.println(hex);
+//	if(i < 16) {
+//		String result = i < 10 ? String.format("%02d", i) :
+//				"0" + Integer.toString(i, 16).toUpperCase();
+//
+//		System.out.println(HexUtils.stringToHexString(result));
+//	}else {
+//		String result = Integer.toHexString(i);
+//		System.out.println(HexUtils.stringToHexString(result));
+//	}
+	}
 }
