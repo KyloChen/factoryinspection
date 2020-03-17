@@ -29,7 +29,7 @@ public class Territory {
         this.territoryCode = territoryCode;
     }
 
-    @ManyToOne(cascade = {CascadeType.REFRESH})
+    @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinColumn(name = "plant_id")
     public Plant getPlant() {
         return plant;

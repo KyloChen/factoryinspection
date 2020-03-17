@@ -12,25 +12,6 @@ html,body{
 
 }
 
-/*button*/
-#getAlarmLevel{
-    font-size: 12px;
-    position: absolute;
-    left: 0;
-}
-#allSensor{
-    font-size: 12px;
-    position: absolute;
-    left: 80px;
-}
-#backMap{
-    font-size: 12px;
-    position: absolute;
-    left: 160px;
-}
-
-
-
 /*container*/
 .main #main-title{
     width: 100%;
@@ -79,40 +60,39 @@ html,body{
     overflow: hidden;
 }
 .vertical-li{
+    text-align: center;
     list-style-image: none;
     list-style-type: none;
-    float: left;
+    /*float: left;*/
 }
 .pit-container::-webkit-scrollbar {
     display:none
 }
-/* 模态框样式 */
-.loading {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    background-color: black;
-    opacity: 0.4;
-    z-index: 9998;
-    display:  none;
+.cellarTree{
+    display: inline-block;
+    text-align: center;
 }
-
-.video-container{
-    width: 100%;
-    height: 80%;
-    overflow: scroll;
+.row-text{
+    color: whitesmoke;
 }
-
-.video-container::-webkit-scrollbar {display:none}
-#pit-menu {
-    border-radius: 10px;
-    position: fixed;
-    left:0;
-    top:0;
-    width:50px;
-    height: auto;
-    background-color: black;
-    display: none;
+.cellar-container-div{
+    cursor: pointer;
+    width: 68px;
+    height: 62px;
+}
+.sensor-img{
+    width: 73px;
+    height: 80px;
+    font-size: 13px;
+    padding: 5px 0;
+}
+.curCellarValue{
+    font-size: 12px;
+    line-height: 14px;
+}
+.curCellarValue span{
+    display: block;
+}
+.plant-camera-container{
+    margin-top: 220%;
 }

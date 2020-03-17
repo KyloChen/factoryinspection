@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="智能厂房管理系统">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,minimum-scale=1.0,user-scalable=0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>车间总览</title>
+
+    <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap-table.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/mobilecss/mobilePlantMap.css}">
+
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap-table.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/factoryinspection/mobileScripts/mobilePlantMap.js}"></script>
+</head>
+<body>
+    <div id="mobile-plant-container">
+        <div id="mobile-plant-header">
+            <span>厂房车间地图</span>
+        </div>
+        <div class="mobile-plant" th:each="plant:${plants}">
+            <span th:text="${plant.plantName}"
+                  th:plantId="${plant.plantId}">
+            </span>
+            <!--<button class="btn btn-primary" th:attr="data-plantId=${plant.plantId}"-->
+                <!--onclick="showMobilePlantCamera(this)">-->
+                <!--查看监控-->
+            <!--</button>-->
+        </div>
+    </div>
+</body>
+<script>
+    var pathname = window.location.pathname;
+    var projectName = pathname.substring(0,pathname.substr(1).indexOf('/') + 1);
+    $(this).click(function(e) { // 在页面任意位置点击而触发此事件
+        // e.target表示被点击的目标
+        var machineType =$('#machineType').val();
+        var plantId = $(e.target).attr("plantId");
+
+        if(plantId == null){
+            return;
+        }
+        location.href =  projectName+"/mobile/index?plantId=" + plantId;
+
+
+    });
+    function showMobilePlantCamera(that){
+        var plantId = $(that).attr('data-plantId');
+        console.log(plantId);
+
+    }
+</script>
+
+</html>

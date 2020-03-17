@@ -1,11 +1,17 @@
-var player, player1, player2;
 var pathname = window.location.pathname;
 var projectName = pathname.substring(0,pathname.substr(1).indexOf('/') + 1);
 $(document).ready(function() {
-    player = new EZUIKit.EZUIPlayer('myPlayer');
-    player1 = new EZUIKit.EZUIPlayer('myPlayer1');
-    player2 = new EZUIKit.EZUIPlayer('myPlayer2');
+    $('.camera_player').each(function (i, e) {
+        var player = new EZUIKit.EZUIPlayer(e.id);
+    });
 });
+
+function isEmpty(value){
+    if(value == null || value == "" || value == "undefined" || value == undefined || value == "null"){
+        return true;
+    }
+}
+
 function showCellarContainer(that) {
     var pitId = $(that).attr('data-pitId');
     if(pitId == undefined || pitId == null || pitId == ''){

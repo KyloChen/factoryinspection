@@ -26,45 +26,53 @@
 <body style="background: black;">
 <!--button-->
 <button id="getAlarmLevel" class="btn btn-primary" data-toggle="modal" data-target="#thresholdModel"
-        onclick="getThresholdTable()">设备阈值</button>
+        onclick="getThresholdTable()">报警设置</button>
 <button id="allSensor" class="btn btn-success" th:attr="data-plantId=${serverPlant.plantId}" onclick="showAllSensor(this)">全部设备</button>
 <button id="backMap" class="btn btn-info" onclick="window.history.back()">返回地图</button>
 
-<div class="main">
-    <div id="main-title">西凤酒业酒窖温度无线监控系统</div>
+<div class="main" >
+    <div id="main-title">酒窖温度无线监控系统</div>
     <div class="pit-container">
         <h2 style="color: whitesmoke" th:text="${serverPlant.plantName}"></h2>
         <div class="pit-container-div" th:each="pit:${serverPits}" th:switch="${pit.pitType}" >
-            <span style="color: whitesmoke;"
-                  th:case="'true'" th:text="'第'+${pit.pitCode}+'垮'" th:attr="data-pitId=${pit.pitId}" onclick="showCellarContainer(this)"></span>
-            <span style="color: darkgrey;"
+            <span class="pit-container-span" style="color: whitesmoke;"
+                  th:case="'true'" th:text="'第'+${pit.pitCode}+'垮'" th:attr="data-pitId=${pit.pitId}" th:pitId="${pit.pitId}" onclick="showCellarContainer(this)"></span>
+            <span class="pit-container-span" style="color: darkgrey;"
                   th:case="'false'" th:text="'第'+${pit.pitCode}+'垮'" th:attr="data-pitId=${pit.pitId}" onclick="showCellarContainer(this)"></span>
         </div>
     </div>
     <div id="cellar-container">
         <h3 style="margin-top: 30%;">← 请在左侧选择要查看的垮号.</h3>
     </div>
-    <div id="camera-container">
-        <video style="width: 80%" id="myPlayer" class = "camera_player"
-               autoplay="false"
-               controls playsInline webkit-playsinline>
-            <source src="http://hls01open.ys7.com/openlive/085906b09e274eba90cf22093fa93a6f.m3u8" type="application/x-mpegURL" />
-        </video>
+    <div id="camera-container" th:each="cameraExisted, cameras:${cameraExisted}" th:switch="${cameraExisted.key}">
+        <span th:case="0">本车间无摄像头，请录入后刷新重试</span>
+        <div class="video-container" th:case="1" >
+            <h3 id="video-header" th:text="${serverPlant.plantName} + '监控内容'"></h3>
+            <video th:id="myPlayer+(${indexInc.index}+1)" class = "camera_player"
+                   autoplay="false"
+                   controls playsInline webkit-playsinline th:each="camera, indexInc:${cameraExisted.value}">
+                <source th:src="${camera.cameraUrl}" type="application/x-mpegURL" />
+            </video>
+        </div>
     </div>
 </div>
-
+<div id="pit-menu" style="display: none" >
+    <button id="menuCamera" class="btn btn-info" value="" onclick="showPitCamera()">查看视频</button>
+</div>
+<div id="loading" class="loading">
+</div>
 <!--model-->
 <div class="modal fade" id="thresholdModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="thresholdModalLabel">设备阈值</h4>
+                <h4 class="modal-title" id="thresholdModalLabel">报警设置</h4>
             </div>
             <div class="modal-body">
                 <form class="form-horizontal">
                     <div class="col-lg-12 col-md-12 col-xs-12 form-inline">
-                        <h4>当前阈值</h4>
+                        <h4>当前报警值</h4>
                         <table id="table">
                         </table>
                     </div>
@@ -76,6 +84,98 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal -->
 </div>
-<input style="display: none" th:value="${plant}">
+<div id="pitCameraDiv" style="display: none;width: 30%;z-index: 9999;position: absolute;left: 35%;top: 27%;">
+    <div id="pitCameraHeader" style="color: aquamarine;text-align: center;font-size: 21px;background: dimgray;">垮区视频查看
+        <span style="float: right;font-size: 17px;padding: 3px 5px;color: whitesmoke;cursor: pointer;" onclick="closePitCameraDiv()">关闭</span>
+    </div>
+    <video style="width: 100%" id="pitCameraPlayer" class = "camera_player"
+           autoplay="false"
+           controls playsInline webkit-playsinline>
+        <source id="pitCameraSource" src="" type="application/x-mpegURL" />
+    </video>
+</div>
+<input id="serverPlantId" style="display: none" th:value="${serverPlant.plantId}">
 </body>
+<script>
+    document.oncontextmenu = function(e) {
+        //阻止浏览器默认事件
+        return false;//一般点击右键会出现浏览器默认的右键菜单，写了这句代码就可以阻止该默认事件。
+    };
+    var loading = document.getElementById("loading");
+    var pitMenu = document.getElementById("pit-menu");
+    var menuCamera = document.getElementById("menuCamera");
+    $(function(){
+        $('.pit-container-span').mousedown(function(e){
+            if(3 == e.which){//鼠标右击
+                if($(this).attr('pitId')){
+                    //鼠标点的坐标
+                    var pitId = $(this).attr('pitId');
+                    menuCamera.value = pitId;
+                    console.log(""+pitId);
+                    pitMenu.style.display = "block";
+                    //让自定义菜单随鼠标的箭头位置移动
+                    pitMenu.style.left = e.clientX + "px";
+                    pitMenu.style.top = e.clientY + "px";
+
+                }else {
+                    alert("该设备未启用,无法操作.");
+                }
+            }
+        })
+    });
+
+    //实现点击document，自定义菜单消失
+    document.onclick = function() {
+        pitMenu.style.display = "none";
+    };
+    // $("#cameraPlantCode").change(function () {
+    //     console.log('准备选择垮区');
+    //     $('#cameraPitCode').removeAttr("disabled");
+    // });
+    var pitCameraSource = document.getElementById("pitCameraSource");
+    var pitCameraDiv = document.getElementById("pitCameraDiv");
+    var pitCameraHeader = document.getElementById("pitCameraHeader");
+    var cameraCount;
+    var pitCameraPlayer;
+    function showPitCamera(){
+        var inputData = {};
+
+        inputData.serverPlantId = $('#serverPlantId').val();
+        inputData.serverPitId = menuCamera.value;
+        console.log(inputData);
+
+        $.ajax({
+            //几个参数需要注意一下
+            type: "POST",//方法类型
+            contentType:"application/x-www-form-urlencoded",
+            url: "/factoryinspection/server/showPitCamera" ,//url
+            data: inputData,
+            success: function (result) {
+                var obj = JSON.parse(result);
+                if(isEmpty(obj.cameraUrl)){
+                    alert("当前垮无监控设备，请录入后查看.");
+                    return;
+                }
+                pitCameraSource.src = obj.cameraUrl;
+                $('#pitCameraHeader').val ("第" + obj.pitCode + "垮监控视频");
+
+                pitCameraPlayer = new EZUIKit.EZUIPlayer('pitCameraPlayer');
+                pitCameraPlayer.play();
+                pitCameraDiv.style.display = "block";
+                loading.style.display = "block";
+            },
+            error : function(result) {
+                alert(result);
+            }
+        })
+    }
+
+    function closePitCameraDiv() {
+        pitCameraPlayer.stop();
+        pitCameraDiv.style.display = "none";
+        loading.style.display = "none";
+    }
+
+
+</script>
 </html>

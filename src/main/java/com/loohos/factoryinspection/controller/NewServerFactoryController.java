@@ -4,6 +4,8 @@ package com.loohos.factoryinspection.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
+import com.loohos.factoryinspection.enumeration.CameraBrand;
+import com.loohos.factoryinspection.enumeration.CameraLocation;
 import com.loohos.factoryinspection.enumeration.SensorType;
 import com.loohos.factoryinspection.enumeration.SensorWorkingType;
 import com.loohos.factoryinspection.model.config.ConfigAlarmLevel;
@@ -61,6 +63,7 @@ public class NewServerFactoryController {
     @Resource(name = "serverCellarServiceImpl") private ServerCellarService serverCellarService;
     @Resource(name = "serverSensorNodeServiceImpl") private ServerSensorNodeService serverSensorNodeService;
     @Resource(name = "serverSensorServiceImpl") private ServerSensorService serverSensorService;
+    @Resource(name = "cameraServiceImpl") private CameraService cameraService;
 
     @RequestMapping(value = "/plant",produces={"text/html;charset=UTF-8;","application/json;"})
     public String getPlant(ModelMap modelMap){
@@ -84,6 +87,17 @@ public class NewServerFactoryController {
         modelMap.put("serverPlant", plant);
         request.getSession().setAttribute("plantId", plantId);
 
+        List<Camera> cameras = cameraService.getCamerasByPlantCode(plant.getPlantCode());
+        Map<Integer, List<Camera>> cameraExisted = new HashMap<>();
+
+        if(cameras == null){
+            cameraExisted.put(0, cameras);
+        }else {
+            cameraExisted.put(1, cameras);
+        }
+
+        modelMap.put("cameraExisted", cameraExisted);
+
         List<ServerTerritory> territories = serverTerritoryService.getTerritoriesByPlant(plant);
         List<ServerPit> pits = new ArrayList<>();
         if(territories == null){
@@ -95,7 +109,7 @@ public class NewServerFactoryController {
                 List<ServerTeam> teams = serverTeamService.getTeamsByTerritory(territory);
                 for (ServerTeam team : teams) {
                     List<ServerPit> existedPits = serverPitService.getPitsByTeam(team);
-                    if(existedPits.size() < 10){
+                    if(existedPits.size() <= 10){
 //                        for (int i = pits.size()+1; i <= 10; i++){
 //                            Pit pit = new Pit();
 //                            pit.setPitCode(i);
@@ -131,6 +145,22 @@ public class NewServerFactoryController {
         return "winery/serverPage/serverPlantInside";
     }
 
+    @RequestMapping(value = "/showPitCamera",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String showPitCamera(@ModelAttribute ServerPlantPit inputData,
+                                ModelMap modelMap){
+        logger.info(inputData.getServerPlantId() + " , " + inputData.getServerPitId());
+        int serverPlantCode = serverPlantService.getPlantCodeById(inputData.getServerPlantId());
+        int serverPitCode = serverPitService.getPitCodeById(inputData.getServerPitId());
+//        String plantId = serverPlantService.getLocalIdByServerPlantId(inputData.getServerPlantId());
+//        String pitId = serverPitService.getLocalIdByServerPitId(inputData.getServerPitId());
+//        Plant plant = plantService.find(plantId);
+//        Pit pit = pitService.find(pitId);
+        Camera pitCameras = cameraService.getCamerasByPlantAndPit(serverPlantCode, serverPitCode);
+        Gson gson = new Gson();
+        String retString = gson.toJson(pitCameras);
+        return retString;
+    }
 
     @RequestMapping(value = "/showCellar",produces={"text/html;charset=UTF-8;","application/json;"})
     public String showCellar(@ModelAttribute Pit inputData,
@@ -273,7 +303,7 @@ public class NewServerFactoryController {
                 List<ServerTeam> teams = serverTeamService.getTeamsByTerritory(territory);
                 for (ServerTeam team : teams) {
                     List<ServerPit> existedPits = serverPitService.getPitsByTeam(team);
-                    if (existedPits.size() < 10) {
+                    if (existedPits.size() <= 10) {
 //                        for (int i = pits.size()+1; i <= 10; i++){
 //                            Pit pit = new Pit();
 //                            pit.setPitCode(i);
@@ -606,8 +636,8 @@ public class NewServerFactoryController {
         Date endDate = null;
         try {
             //加24小时找值
-            startDate = CommonUtils.addDays(format1.parse(inputData.getStartDate()), 1);
-            endDate = CommonUtils.addDays(format1.parse(inputData.getEndDate()), 1);
+            startDate = CommonUtils.addDays(format1.parse(inputData.getStartDate()), 0);
+            endDate = CommonUtils.addDays(format1.parse(inputData.getEndDate()), 0);
             logger.info("Start server query.....");
             List<Double> queryTopTemps = serverSensorNodeService.getValuesBySensorAndRange(sensor, TOP_TEMP_SENSOR, startDate, endDate);
             List<Double> queryMidTemps = serverSensorNodeService.getValuesBySensorAndRange(sensor, MID_TEMP_SENSOR, startDate, endDate);
@@ -1001,6 +1031,61 @@ public class NewServerFactoryController {
         return retString;
     }
 
+    @RequestMapping(value = "/localUploadServerPlantCamera",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String localUploadServerPlantCamera(HttpServletRequest request,
+                                          HttpServletResponse response,
+                                          @RequestBody String sensorInfo,
+                                          ModelMap model) {
+        String retString = "";
+        if(!machineType.equals("server")){
+            retString = "Not server function... upload is not running...";
+            return retString;
+        }
+        logger.info("开始添加plantCamera.....");
+        logger.info(">>>>>>>>>>>>>>>>> sensorinfo is  : " + sensorInfo);
+        if(sensorInfo.trim().length() < 1) {
+            retString = "未获取到设备信息。";
+            logger.info(retString);
+            return retString;
+        }
+        JSONObject jsonObject = JSON.parseObject(sensorInfo);
+        Camera camera = JSON.toJavaObject(jsonObject, Camera.class);
+        camera.setCameraBrand(CameraBrand.HikVision);
+        camera.setCameraLocation(CameraLocation.PLANT_CAMERA);
+        cameraService.save(camera);
+        retString = "上传摄像头至服务器成功...。";
+        logger.info(retString);
+        return retString;
+    }
+
+    @RequestMapping(value = "/localUploadServerPitCamera",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String localUploadServerPitCamera(HttpServletRequest request,
+                                               HttpServletResponse response,
+                                               @RequestBody String sensorInfo,
+                                               ModelMap model) {
+        String retString = "";
+        if(!machineType.equals("server")){
+            retString = "Not server function... upload is not running...";
+            return retString;
+        }
+        logger.info("开始添加pitCamera.....");
+        logger.info(">>>>>>>>>>>>>>>>> sensorinfo is  : " + sensorInfo);
+        if(sensorInfo.trim().length() < 1) {
+            retString = "未获取到设备信息。";
+            logger.info(retString);
+            return retString;
+        }
+        JSONObject jsonObject = JSON.parseObject(sensorInfo);
+        Camera camera = JSON.toJavaObject(jsonObject, Camera.class);
+        camera.setCameraBrand(CameraBrand.HikVision);
+        camera.setCameraLocation(CameraLocation.PIT_CAMERA);
+        cameraService.save(camera);
+        retString = "上传摄像头至服务器成功...。";
+        logger.info(retString);
+        return retString;
+    }
 
     @RequestMapping(value = "/localUploadServerSensor",produces={"text/html;charset=UTF-8;","application/json;"})
     @ResponseBody
@@ -1016,7 +1101,7 @@ public class NewServerFactoryController {
         logger.info("开始添加sensor.....");
         logger.info(">>>>>>>>>>>>>>>>> sensorinfo is  : " + sensorInfo);
         if(sensorInfo.trim().length() < 1) {
-            retString = "未获取到设备信息。";
+            retString = "未获取到摄像头信息。";
             logger.info(retString);
             return retString;
         }
@@ -1025,10 +1110,12 @@ public class NewServerFactoryController {
         serverSensor.setCreatedTime(new Date());
         serverSensor.setSensorWorkingType(SensorWorkingType.SENSOR_IS_WORKING);
         serverSensorService.save(serverSensor);
+
         retString = "上传sensor至服务器成功...。";
         logger.info(retString);
         return retString;
     }
+
 
     @RequestMapping(value = "/loaduploadthreshold",produces={"text/html;charset=UTF-8;","application/json;"})
     @ResponseBody

@@ -40,15 +40,27 @@
 .cellar-part::-webkit-scrollbar {
     display:none
 }
-.curve-part{
-    width: 100%;height: 53%;
+#camera-curve-container{
+    width: 100%;
+    height: 53%;
+    display: flex;
 }
 
+.curve-part{
+    width: 100%;
+    height: 100%;
+}
+
+/*.pit-camera-part{*/
+    /*width: 30%;*/
+    /*height: 100%;*/
+/*}*/
 .curCellarValue span{
     display: block;
     font-size: 10px;
 }
 .curCellarValue{
+    line-height: 14px;
     position: relative;
     top: -2px;
 }

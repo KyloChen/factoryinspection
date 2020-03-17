@@ -136,7 +136,20 @@
     <button id="menu-alter" class="btn btn-info" value="" onclick="alterSensor()" data-toggle="modal" data-target="#alterModal">修改</button>
     <button id="menu-delete" class="btn btn-danger" value="" onclick="deleteSensor()">删除</button>
 </div>
+<div id="camera-curve-container">
+<!--<div id="pit-camera-container" class="pit-camera-part " th:each="cameraExisted, cameras:${cameraExisted}" th:switch="${cameraExisted.key}">-->
+    <!--<span th:case="0">本垮区无摄像头</span>-->
+    <!--<div class="video-container" th:case="1" >-->
+        <!--<h3 id="video-header" th:text="${plant.plantName} + '第' + ${pit.pitCode} + '垮监控内容'"></h3>-->
+        <!--<video id="myPlayer" class = "camera_player"-->
+               <!--autoplay="false"-->
+               <!--controls playsInline webkit-playsinline th:each="camera:${cameraExisted.value}">-->
+            <!--<source th:src="${camera.cameraUrl}" type="application/x-mpegURL" />-->
+        <!--</video>-->
+    <!--</div>-->
+<!--</div>-->
 <div id="curve-container" class="curve-part">
+</div>
 </div>
 <!--添加设备model-->
 <div class="modal fade" id="alterModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

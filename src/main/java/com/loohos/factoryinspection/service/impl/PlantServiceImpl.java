@@ -27,4 +27,17 @@ public class PlantServiceImpl extends DaoSupport<Plant> implements PlantService 
             return null;
         }
     }
+
+    @Override
+    public Plant getPlantByName(String plantName) {
+        Query query = em.createQuery("select o from Plant o where o.plantName = ?1");
+        query.setParameter(1, plantName);
+        query.setMaxResults(1);
+        try {
+            return (Plant) query.getSingleResult();
+        }catch (Exception e){
+            logger.info("error get plant by code");
+            return null;
+        }
+    }
 }

@@ -36,7 +36,6 @@ function resetTimeRange() {
 }
 
 function showFullScreen() {
-    // screenOrientationEvent();
     var fullScreenLayer = document.getElementById('fullScreenLayer');
     var closeBtn = document.getElementById('fullScreenLayerBtn');
     closeBtn.style.display = 'block';
@@ -89,7 +88,7 @@ function lastHours() {
     $.ajax({
         type: "POST",//方法类型
         dataType: "json",//预期服务器返回的数据类型
-        url: "/factoryinspection/winery/showLastSixHours",//url
+        url: "/factoryinspection/server/showLastSixHours",//url
         data: inputData,
         success: function (result) {
             console.log(result);
@@ -210,7 +209,7 @@ function queryByDateRange() {
     $.ajax({
         type: "POST",//方法类型
         dataType: "json",//预期服务器返回的数据类型
-        url: "/factoryinspection/winery/queryByDateRange" ,//url
+        url: "/factoryinspection/server/queryByDateRange" ,//url
         data: inputData,
         success: function (result) {
             // console.log(typeof result);

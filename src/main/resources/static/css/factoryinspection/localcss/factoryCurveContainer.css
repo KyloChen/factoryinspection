@@ -12,8 +12,7 @@ body{
     display:flex;
 }
 #mainDiv{
-    width: 70%;
-    padding: 0% 13%;
+    padding: 0 20%;
 }
 #curveContainer{
     width: 100%;
@@ -26,8 +25,8 @@ body{
 }
 #login-box{
     position: relative;
-    top: -101%;
-    left: 130%;
+    top: -90%;
+    left: 77%;
     border: 1px solid;
     font-size: 18px;
     color: aquamarine;

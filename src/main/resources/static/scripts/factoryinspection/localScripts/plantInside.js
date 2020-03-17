@@ -1,23 +1,16 @@
-var player, player1, player2;
 var pathname = window.location.pathname;
 var projectName = pathname.substring(0,pathname.substr(1).indexOf('/') + 1);
 $(document).ready(function() {
-    player = new EZUIKit.EZUIPlayer('myPlayer');
-    player1 = new EZUIKit.EZUIPlayer('myPlayer1');
-    player2 = new EZUIKit.EZUIPlayer('myPlayer2');
+    $('.camera_player').each(function (i, e) {
+        var player = new EZUIKit.EZUIPlayer(e.id);
+    });
 });
 function isEmpty(value){
     if(value == null || value == "" || value == "undefined" || value == undefined || value == "null"){
         return true;
     }
-    else{
-        value = value.replace(/\s/g,"");
-        if(value == ""){
-            return true;
-        }
-        return false;
-    }
 }
+
 function saveSensorCode() {
     var sensorCode = document.getElementById("sensorCode").value;
     $("#saveTerminalBtn").attr("disabled", true);
@@ -48,6 +41,7 @@ function saveSensorCode() {
 }
 function showCellarContainer(that) {
     var pitId = $(that).attr('data-pitId');
+    var plantId = document.getElementById("plantId").value;
     if(pitId == undefined || pitId == null || pitId == ''){
         alert("该垮区未启用(无设备)！");
         return;
@@ -55,6 +49,7 @@ function showCellarContainer(that) {
     var inputData = {};
     console.log(pitId);
     inputData.pitId = pitId;
+    inputData.plantId = plantId;
     $.ajax({
         url: "/factoryinspection/winery/showCellar",
         method: "post",
@@ -63,6 +58,7 @@ function showCellarContainer(that) {
             var divshow = $("#cellar-container");
             divshow.text("");// 清空数据
             divshow.append(result);
+
             // $("#tableInfoContainer").html(result);
         },
         error: function () {
@@ -197,7 +193,7 @@ function setThreshold(){
     var modelMinValue = document.getElementById("modelMinValue").value;
     var modelMaxValue = document.getElementById("modelMaxValue").value;
     if(isEmpty(modelAlarmLevel) || isEmpty(modelMinValue) || isEmpty(modelMaxValue)){
-        alert("请输入要设置的阈值！");
+        alert("请输入要设置的报警值！");
         return;
     }
     inputData.alarmLevel = modelAlarmLevel;

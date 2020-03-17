@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="智能厂房管理系统">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,minimum-scale=1.0,user-scalable=0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>窖区内部</title>
+
+    <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap-table.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/mobilecss/mobileCellarContainer.css}">
+
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery.timers-1.2.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/js/hls.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/ezuikit.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap-table.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/factoryinspection/mobileScripts/mobileCellarContainer.js}"></script>
+
+</head>
+<body style="background: black">
+<i class="fa fa-arrow-left fa-2x" style="color: whitesmoke;position: absolute;left: 4%;top: 1.2%;font-size: 20px;" onclick="backToMobileInside()"></i>
+<div class="cellar-part">
+    <ul>
+        <li style="text-align: center">
+             <h4 style="color: whitesmoke; " th:text="'第 '+${serverPit.pitCode}+' 垮'">
+             </h4>
+            <ul style="width: 100%">
+                <li class="cellarTree col-xs-3" th:each="row:${cellarSensorTree}">
+                    <span class="row-text" th:text="'排 '+${row.key}+'&nbsp&nbsp'">
+                    </span>
+                    <ul style="">
+                        <li class="vertical-li"  th:each="cellarSensor:${row.value}">
+                            <div class="cellar-container-div" th:switch="${cellarSensor.serverSensor.alarmLevel}" >
+                                <div class="sensor-img" th:case="0" style="color: darkgrey;background:black url(../static/img/sensorIconBanned.png) 2px 2px no-repeat "
+                                     th:text="'窖'+${cellarSensor.serverCellar.cellarCode}"
+                                     th:attr="data-sensorId=${cellarSensor.serverSensor.sensorId}" th:sensorId="${cellarSensor.serverSensor.sensorId}" th:onclick="showMobileCurve(this)" >
+                                </div>
+                                <div class="sensor-img" th:case="1" style="color: forestgreen;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
+                                     th:attr="data-sensorId=${cellarSensor.serverSensor.sensorId}" th:sensorId="${cellarSensor.serverSensor.sensorId}" th:onclick="showMobileCurve(this)" >
+                                    <div class="curCellarValue">
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.serverCellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.serverSensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.serverSensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.serverSensor.curBotNodeValue}"></span>
+                                    </div>
+                                </div>
+                                <div class="sensor-img" th:case="2" style="color: darkorange;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
+                                     th:attr="data-sensorId=${cellarSensor.serverSensor.sensorId}" th:sensorId="${cellarSensor.serverSensor.sensorId}" th:onclick="showMobileCurve(this)" >
+                                    <div class="curCellarValue">
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.serverCellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.serverSensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.serverSensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.serverSensor.curBotNodeValue}"></span>
+                                    </div>
+                                </div>
+                                <div class="sensor-img" th:case="3" style="color: red;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
+                                     th:attr="data-sensorId=${cellarSensor.serverSensor.sensorId}" th:sensorId="${cellarSensor.serverSensor.sensorId}" th:onclick="showMobileCurve(this)" >
+                                    <div class="curCellarValue">
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.serverCellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.serverSensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.serverSensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.serverSensor.curBotNodeValue}"></span>
+                                    </div>
+                                </div>
+                                <div class="sensor-img" th:case="4" style="color: red;background:black url(../static/img/sensorIconEmpty.png) 2px 2px no-repeat "
+                                     th:attr="data-sensorId=${cellarSensor.serverSensor.sensorId}" th:sensorId="${cellarSensor.serverSensor.sensorId}" th:onclick="showMobileCurve(this)" >
+                                    <div class="curCellarValue">
+                                        <span style="font-size: 13px" th:text="'窖'+${cellarSensor.serverCellar.cellarCode}"></span>
+                                        <span th:text="'上: '+${cellarSensor.serverSensor.curTopNodeValue}"></span>
+                                        <span th:text="'中: '+${cellarSensor.serverSensor.curMidNodeValue}"></span>
+                                        <span th:text="'下: '+${cellarSensor.serverSensor.curBotNodeValue}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</div>
+
+<div class="plant-camera-container" th:each="cameraExisted, cameras:${cameraExisted}" th:switch="${cameraExisted.key}">
+    <span style="color: whitesmoke" th:case="0">本车间无摄像头，请录入后刷新重试</span>
+    <div class="video-container" th:case="1" >
+        <h3 style="text-align: center;color:whitesmoke;" id="video-header" th:text="${serverPlant.plantName} + '第' + ${serverPit.pitCode} + '垮监控内容'"></h3>
+        <video style="width: 300px;margin-left: 13%;" th:id="myPlayer+(${indexInc.index}+1)" class="camera_player"
+               autoplay="false"
+               controls playsInline webkit-playsinline th:each="camera, indexInc:${cameraExisted.value}">
+            <source th:src="${camera.cameraUrl}" type="application/x-mpegURL" />
+        </video>
+    </div>
+</div>
+<input id="serverPlantId" style="display: none" th:value="${serverPlant.plantId}">
+<input id="serverPitId" style="display: none" th:value="${serverPit.pitId}">
+</body>
+<script>
+    var pathname = window.location.pathname;
+    var projectName = pathname.substring(0,pathname.substr(1).indexOf('/') + 1);
+    var plantId = document.getElementById("serverPlantId").value;
+    var pitId = document.getElementById("serverPitId").value;
+    function backToMobileInside() {
+        location.href =  projectName+"/mobile/index?plantId=" + plantId;
+    }
+    function showMobileCurve(that) {
+        var sensorId = $(that).attr('data-sensorId');
+        console.log(sensorId);
+        if(sensorId == undefined || sensorId == null || sensorId == ''){
+            alert("该设备未启用！");
+            return;
+        }
+        location.href =  projectName+"/mobile/mobileCurveDetail?plantId=" + plantId + "&pitId=" + pitId + "&sensorId=" + sensorId;
+    }
+</script>
+</html>

@@ -18,20 +18,25 @@ html,body{
     position: absolute;
     left: 0;
 }
-#setAlarmLevel{
+#addCamera{
     font-size: 12px;
     position: absolute;
     left: 80px;
 }
+#setAlarmLevel{
+    font-size: 12px;
+    position: absolute;
+    left: 172px;
+}
 #allSensor{
      font-size: 12px;
      position: absolute;
-     left: 160px;
+     left: 252px;
  }
 #backMap{
     font-size: 12px;
     position: absolute;
-    left: 240px;
+    left: 332px;
 }
 
 /*container*/
@@ -43,10 +48,11 @@ html,body{
 }
 .main .pit-container{
     width: 40%;
-    height: 50%;
+    height: 40%;
     float: left;
     border: 1px solid whitesmoke;
-    overflow: scroll;padding: 0 4%;
+    overflow: scroll;
+    padding: 0 4%;
 }
 
 .main .pit-container .pit-container-div{
@@ -72,12 +78,13 @@ html,body{
 }
 .main #camera-container{
     width: 40%;
-    height: 40%;
+    height: 50%;
     float: left;
     border: 1px solid whitesmoke;
     color: whitesmoke;
     font-size: 20px;
     text-align: center;
+    overflow: hidden;
 }
 .vertical-li{
     list-style-image: none;
@@ -86,4 +93,34 @@ html,body{
 }
 .pit-container::-webkit-scrollbar {
     display:none
+}
+/* 模态框样式 */
+.loading {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background-color: black;
+    opacity: 0.4;
+    z-index: 9998;
+    display:  none;
+}
+
+.video-container{
+    width: 100%;
+    height: 80%;
+    overflow: scroll;
+}
+
+.video-container::-webkit-scrollbar {display:none}
+#pit-menu {
+    border-radius: 10px;
+    position: fixed;
+    left:0;
+    top:0;
+    width:50px;
+    height: auto;
+    background-color: black;
+    display: none;
 }

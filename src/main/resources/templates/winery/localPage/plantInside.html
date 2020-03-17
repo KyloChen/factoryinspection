@@ -25,34 +25,42 @@
 <body style="background: black;">
 
 <button id="addTerminal" class="btn btn-success" data-toggle="modal" data-target="#myModal">添加设备</button>
+<button id="addCamera" class="btn btn-info" data-toggle="modal" data-target="#cameraModal">添加摄像头</button>
 <button id="setAlarmLevel" class="btn btn-primary" data-toggle="modal" data-target="#thresholdModel"
-        onclick="getThresholdTable()">设备阈值</button>
+        onclick="getThresholdTable()">报警设置</button>
 <button id="allSensor" class="btn btn-success" th:attr="data-plantId=${plant.plantId}" onclick="showAllSensor(this)">全部设备</button>
 <button id="backMap" class="btn btn-info" onclick="window.history.back()">返回地图</button>
 
-<div class="main">
-    <div id="main-title">西凤酒业酒窖温度无线监控系统</div>
+<div class="main" >
+    <div id="main-title">酒窖温度无线监控系统</div>
     <div class="pit-container">
         <h2 style="color: whitesmoke" th:text="${plant.plantName}"></h2>
         <div class="pit-container-div" th:each="pit:${pits}" th:switch="${pit.pitType}" >
-            <span style="color: whitesmoke;"
-                  th:case="'true'" th:text="'第'+${pit.pitCode}+'垮'" th:attr="data-pitId=${pit.pitId}" onclick="showCellarContainer(this)"></span>
-            <span style="color: darkgrey;"
+            <span class="pit-container-span" style="color: whitesmoke;"
+                  th:case="'true'" th:text="'第'+${pit.pitCode}+'垮'" th:attr="data-pitId=${pit.pitId}" th:pitId="${pit.pitId}" onclick="showCellarContainer(this)"></span>
+            <span class="pit-container-span" style="color: darkgrey;"
                   th:case="'false'" th:text="'第'+${pit.pitCode}+'垮'" th:attr="data-pitId=${pit.pitId}" onclick="showCellarContainer(this)"></span>
         </div>
     </div>
     <div id="cellar-container">
         <h3 style="margin-top: 30%;">← 请在左侧选择要查看的垮号.</h3>
     </div>
-    <div id="camera-container">
-        <video style="width: 80%" id="myPlayer" class = "camera_player"
-        autoplay="false"
-        controls playsInline webkit-playsinline>
-            <source src="http://hls01open.ys7.com/openlive/085906b09e274eba90cf22093fa93a6f.m3u8" type="application/x-mpegURL" />
-        </video>
+    <div id="camera-container" th:each="cameraExisted, cameras:${cameraExisted}" th:switch="${cameraExisted.key}">
+        <span th:case="0">本车间无摄像头，请录入后刷新重试</span>
+        <div class="video-container" th:case="1" >
+            <h3 id="video-header" th:text="${plant.plantName} + '监控内容'"></h3>
+            <video th:id="myPlayer+(${indexInc.index}+1)" class = "camera_player"
+                   autoplay="false"
+                   controls playsInline webkit-playsinline th:each="camera, indexInc:${cameraExisted.value}">
+                <source th:src="${camera.cameraUrl}" type="application/x-mpegURL" />
+            </video>
+        </div>
     </div>
 </div>
 
+<div id="pit-menu" style="display: none" >
+    <button id="menuCamera" class="btn btn-info" value="" onclick="showPitCamera()">查看视频</button>
+</div>
 <!--添加设备model-->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 
@@ -81,17 +89,100 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal -->
 </div>
+<!--添加设备model-->
+<div class="modal fade" id="cameraModal" tabindex="-1" role="dialog" aria-labelledby="cameraModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="cameraModalLabel">添加摄像头</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="cameraBrand" class="control-label">摄像头品牌:</label>
+                        <input type="text" class="form-control" readonly="readonly" id="cameraBrand" value="HikVision">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="cameraUrl" class="control-label">摄像头url:</label>
+                        <input type="text" class="form-control" id="cameraUrl">
+                    </div>
+                </form>
+                <form class="form-horizontal">
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label for="cameraName" class="control-label">摄像头名称:</label>
+                        <input type="text" class="form-control" id="cameraName">
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="cameraSerialNum" class="control-label">序列号:</label>
+                        <input type="text" class="form-control" id="cameraSerialNum">
+                    </div>
+                </form>
+
+                <form class="form-horizontal">
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label  class="control-label" for="modelCameraLocation">摄像头位置类型:</label>
+                        <select name="modelCameraLocation"  class="form-control" style="max-width: 150px" id="modelCameraLocation">
+                            <option value="0">请选择类型</option>
+                            <option value="1">车间</option>
+                            <option value="2">垮</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="remark" class="control-label">备注:</label>
+                        <input type="text" class="form-control" id="remark">
+                    </div>
+                </form>
+                <form class="form-horizontal" id="cameraLocationOption" style="display: none">
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group">
+                        <label  class="control-label" for="cameraPlantCode">车间号:</label>
+                        <select name="cameraPlantCode"  class="form-control" style="max-width: 150px" id="cameraPlantCode">
+                            <option value="">请选择车间</option>
+                            <option th:each="plant:${plants}"
+                                    th:value="${plant.plantCode}"
+                                    th:text="${plant.plantName}"
+                            ></option>
+                        </select>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-xs-6 form-group" style="float: right;">
+                        <label for="cameraPitCode" class="control-label">垮号:</label>
+                        <select name="cameraPitCode"  class="form-control" style="max-width: 150px" id="cameraPitCode">
+                            <option value="0">请选择垮区</option>
+                            <option value="1">第一垮</option>
+                            <option value="2">第二垮</option>
+                            <option value="3">第三垮</option>
+                            <option value="4">第四垮</option>
+                            <option value="5">第五垮</option>
+                            <option value="6">第六垮</option>
+                            <option value="7">第七垮</option>
+                            <option value="8">第八垮</option>
+                            <option value="9">第九垮</option>
+                            <option value="10">第十垮</option>
+                        </select>
+                    </div>
+                </form>
+
+            </div>
+            <div class="modal-footer" style="display: inline-block;padding: 5px 26%;">
+                <button type="button" id="saveCameraBtn" class="btn btn-success" onclick="saveCamera()">保存摄像头</button>
+                <button type="button" class="btn btn-info" onclick="cameraUrlTest()">Url信号源测试</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
 <div class="modal fade" id="thresholdModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="thresholdModalLabel">设备阈值</h4>
+                <h4 class="modal-title" id="thresholdModalLabel">报警设备</h4>
             </div>
             <div class="modal-body">
                 <form class="form-horizontal">
                     <div id="addThresholdModelBar" class="col-lg-12 col-md-12 col-xs-12 form-inline" >
-                        <h4>新增阈值</h4>
+                        <h4>新增报警值</h4>
                         <label  class="control-label" for="modelAlarmLevel">告警等级:</label>
                         <select  class="form-control" style="max-width: 100px" id="modelAlarmLevel" >
                             <option>1</option>
@@ -108,7 +199,7 @@
                     </div>
 
                     <div class="col-lg-12 col-md-12 col-xs-12 form-inline">
-                        <h4>当前阈值</h4>
+                        <h4>当前报警值</h4>
                         <table id="table">
                         </table>
                     </div>
@@ -121,6 +212,237 @@
     </div><!-- /.modal -->
 
 </div>
-<input style="display: none" th:value="${plant}">
+<div id="loading" class="loading">
+</div>
+<div id="cameraUrlTestDiv" style="display: none;width: 30%;z-index: 9999;position: absolute;left: 35%;top: 27%;">
+    <div id="urlTestHeader" style="color: aquamarine;text-align: center;font-size: 20px;background: dimgray;">Url信号源测试
+        <span style="float: right;font-size: 17px;padding: 3px 5px;color: whitesmoke;cursor: pointer;" onclick="closeTestDiv()">关闭</span>
+    </div>
+    <video style="width: 100%" id="myTestPlayer" class = "camera_player"
+           autoplay="false"
+           controls playsInline webkit-playsinline>
+        <source id="urlTestSource" src="" type="application/x-mpegURL" />
+    </video>
+</div>
+<div id="pitCameraDiv" style="display: none;width: 30%;z-index: 9999;position: absolute;left: 35%;top: 27%;">
+    <div id="pitCameraHeader" style="color: aquamarine;text-align: center;font-size: 21px;background: dimgray;">垮区视频查看
+        <span style="float: right;font-size: 17px;padding: 3px 5px;color: whitesmoke;cursor: pointer;" onclick="closePitCameraDiv()">关闭</span>
+    </div>
+    <video style="width: 100%" id="pitCameraPlayer" class = "camera_player"
+           autoplay="false"
+           controls playsInline webkit-playsinline>
+        <source id="pitCameraSource" src="" type="application/x-mpegURL" />
+    </video>
+</div>
+<input id="plantId" style="display: none" th:value="${plant.plantId}">
 </body>
+<script>
+    document.oncontextmenu = function(e) {
+        //阻止浏览器默认事件
+        return false;//一般点击右键会出现浏览器默认的右键菜单，写了这句代码就可以阻止该默认事件。
+    };
+    var loading = document.getElementById("loading");
+    var pitMenu = document.getElementById("pit-menu");
+    var menuCamera = document.getElementById("menuCamera");
+    $(function(){
+        $('.pit-container-span').mousedown(function(e){
+            if(3 == e.which){//鼠标右击
+                if($(this).attr('pitId')){
+                    //鼠标点的坐标
+                    var pitId = $(this).attr('pitId');
+                    menuCamera.value = pitId;
+                    console.log(""+pitId);
+                    pitMenu.style.display = "block";
+                    //让自定义菜单随鼠标的箭头位置移动
+                    pitMenu.style.left = e.clientX + "px";
+                    pitMenu.style.top = e.clientY + "px";
+
+                }else {
+                    alert("该设备未启用,无法操作.");
+                }
+            }
+        })
+    });
+
+    //实现点击document，自定义菜单消失
+    document.onclick = function() {
+        pitMenu.style.display = "none";
+    };
+    // $("#cameraPlantCode").change(function () {
+    //     console.log('准备选择垮区');
+    //     $('#cameraPitCode').removeAttr("disabled");
+    // });
+    var pitCameraSource = document.getElementById("pitCameraSource");
+    var pitCameraDiv = document.getElementById("pitCameraDiv");
+    var pitCameraHeader = document.getElementById("pitCameraHeader");
+    var cameraCount;
+    var pitCameraPlayer;
+    function showPitCamera(){
+        var inputData = {};
+
+        inputData.plantId = $('#plantId').val();
+        inputData.pitId = menuCamera.value;
+        console.log(inputData);
+
+        $.ajax({
+            //几个参数需要注意一下
+            type: "POST",//方法类型
+            contentType:"application/x-www-form-urlencoded",
+            url: "/factoryinspection/winery/showPitCamera" ,//url
+            data: inputData,
+            success: function (result) {
+                var obj = JSON.parse(result);
+                if(isEmpty(obj.cameraUrl)){
+                    alert("当前垮无监控设备，请录入后查看.");
+                    return;
+                }
+                pitCameraSource.src = obj.cameraUrl;
+                $('#pitCameraHeader').val ("第" + obj.pitCode + "垮监控视频");
+
+                pitCameraPlayer = new EZUIKit.EZUIPlayer('pitCameraPlayer');
+                pitCameraPlayer.play();
+                pitCameraDiv.style.display = "block";
+                loading.style.display = "block";
+            },
+            error : function(result) {
+                alert(result);
+            }
+        })
+    }
+
+    function closePitCameraDiv() {
+        pitCameraPlayer.stop();
+        pitCameraDiv.style.display = "none";
+        loading.style.display = "none";
+    }
+
+
+    $("#modelCameraLocation").change(function(){
+        var opt=$("#modelCameraLocation").val();
+        var cameraLocationOption = document.getElementById("cameraLocationOption");
+        console.log(opt);
+        switch(opt){
+            case '0':
+                console.log("未选择摄像头位置类型!");
+                break;
+            case '1':
+                console.log("选择了车间类型!");
+                cameraLocationOption.style.display = 'block';
+                $('#cameraPitCode').attr("disabled","disabled");
+                $("#cameraPitCode").val('当前为车间摄像头');
+                //准备保存车间下的摄像头
+                break;
+            case '2':
+                console.log("选择了垮区类型!");
+                cameraLocationOption.style.display = 'block';
+                $('#cameraPitCode').removeAttr("disabled");
+                break;
+        }
+    });
+
+    function saveCamera(){
+        var inputData = {};
+        var cameraUrl = $("#cameraUrl").val();
+        var cameraBrand = $("#cameraBrand").val();
+        var cameraName = $("#cameraName").val();
+        var cameraSerialNum = $("#cameraSerialNum").val();
+        var modelCameraLocation = $("#modelCameraLocation").val();
+        var plantCode = $("#cameraPlantCode").val();
+        if(isEmpty(cameraUrl)){
+            alert("请填写正确的Url地址.");
+            return;
+        }
+        if(isEmpty(cameraName)){
+            alert("请填写摄像头名称.");
+            return;
+        }
+        if(modelCameraLocation == '0'){
+            alert("请选择摄像头位置.");
+            return;
+        }
+        if(modelCameraLocation == '1'){
+            //保存车间摄像头 垮区置空
+            inputData.cameraUrl = cameraUrl;
+            inputData.cameraBrand = cameraBrand;
+            inputData.cameraName = cameraName;
+            inputData.cameraSerialNum = cameraSerialNum;
+            inputData.modelCameraLocation = modelCameraLocation;
+            inputData.plantCode = plantCode;
+            console.log(cameraUrl);
+            console.log(inputData);
+            $.ajax({
+                //几个参数需要注意一下
+                type: "POST",//方法类型
+                contentType:"application/x-www-form-urlencoded",
+                url: "/factoryinspection/winery/addPlantCamera" ,//url
+                data: inputData,
+                success: function (result) {
+                    alert(JSON.stringify(result));
+                    window.history.go(0);
+                },
+                error : function(result) {
+                    alert(JSON.stringify(result));
+                }
+            });
+        }
+        if(modelCameraLocation == '2'){
+            //保存垮区摄像头
+            //保存车间摄像头 垮区置空
+            var pitCode = $("#cameraPitCode").val();
+            if(isEmpty(pitCode)){
+                alert("请填写摄像头垮号.");
+                return;
+            }
+            inputData.cameraUrl = cameraUrl;
+            inputData.cameraBrand = cameraBrand;
+            inputData.cameraName = cameraName;
+            inputData.cameraSerialNum = cameraSerialNum;
+            inputData.modelCameraLocation = modelCameraLocation;
+            inputData.plantCode = plantCode;
+            inputData.pitCode = pitCode;
+            $.ajax({
+                //几个参数需要注意一下
+                type: "POST",//方法类型
+                contentType:"application/x-www-form-urlencoded",
+                url: "/factoryinspection/winery/addPitCamera" ,//url
+                data: inputData,
+                success: function (result) {
+                    alert(result);
+                    window.history.go(0);
+                },
+                error : function(result) {
+                    alert(result);
+                    console.log(result);
+                }
+            });
+        }
+    }
+    var testPlayer;
+
+    var cameraUrlTestDiv = document.getElementById("cameraUrlTestDiv");
+    function cameraUrlTest() {
+
+        var urlTestSource = document.getElementById("urlTestSource");
+        var cameraUrlVal = $("#cameraUrl").val();
+        console.log(JSON.stringify(cameraUrlVal));
+        if(isEmpty(cameraUrlVal)){
+            console.log("url为空");
+            alert("测试时，摄像头url不能为空，请重新输入.");
+            return;
+        }
+        loading.style.display = 'block';
+        cameraUrlTestDiv.style.display = 'block';
+        urlTestSource.src = cameraUrlVal;
+        console.log(urlTestSource.src);
+        testPlayer = new EZUIKit.EZUIPlayer('myTestPlayer');
+    }
+
+    function closeTestDiv() {
+        testPlayer = new EZUIKit.EZUIPlayer('myTestPlayer');
+        testPlayer.stop();
+        loading.style.display = 'none';
+        cameraUrlTestDiv.style.display = 'none';
+    }
+
+</script>
 </html>

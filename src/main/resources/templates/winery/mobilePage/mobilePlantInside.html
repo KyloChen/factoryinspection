@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="智能厂房管理系统">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,minimum-scale=1.0,user-scalable=0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>车间总览</title>
+
+    <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap-table.min.css}">
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/mobilecss/mobilePlantInside.css}">
+
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery.timers-1.2.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/js/hls.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/ezuikit/ezuikit.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/bootstrap-table.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/factoryinspection/mobileScripts/mobilePlantInside.js}"></script>
+</head>
+<body>
+<div id="mobile-plant-header">
+    <span th:text="${serverPlant.plantName}+'垮区选择'"></span>
+    <i class="fa fa-arrow-left fa-1g" style="color: black;position: absolute;left: 4%;top: 1.2%;font-size: 20px;" onclick="backToMobilePlant()"></i>
+</div>
+<div class="pit-container">
+    <div class="pit-container-div" th:each="pit:${serverPits}" th:switch="${pit.pitType}" >
+            <span class="pit-container-span"
+                  th:case="'true'" th:text="'第'+${pit.pitCode}+'垮'" th:attr="data-pitId=${pit.pitId}" th:pitId="${pit.pitId}" onclick="showCellarContainer(this)"></span>
+        <span class="pit-container-span" style="color: #2a6496;"
+              th:case="'false'" th:text="'第'+${pit.pitCode}+'垮(未启用)'" th:attr="data-pitId=${pit.pitId}" onclick="showCellarContainer(this)"></span>
+    </div>
+</div>
+<div class="plant-camera-container" th:each="cameraExisted, cameras:${cameraExisted}" th:switch="${cameraExisted.key}">
+    <span th:case="0">本车间无摄像头，请录入后刷新重试</span>
+    <div class="video-container" th:case="1" >
+        <h3 style="width: 300px;text-align: center;" id="video-header" th:text="${serverPlant.plantName} + '监控内容'"></h3>
+        <video style="margin-left: 14%;" th:id="myPlayer+(${indexInc.index}+1)" class="camera_player"
+               autoplay="false"
+               controls playsInline webkit-playsinline th:each="camera, indexInc:${cameraExisted.value}">
+            <source th:src="${camera.cameraUrl}" type="application/x-mpegURL" />
+        </video>
+    </div>
+</div>
+<input id="serverPlantId" style="display: none" th:value="${serverPlant.plantId}">
+</body>
+
+<script>
+    function backToMobilePlant() {
+        location.href =  projectName+"/mobile/plant";
+    }
+
+    function showCellarContainer(that) {
+        var pitId = $(that).attr('data-pitId');
+        var plantId = document.getElementById("serverPlantId").value;
+        if(pitId == undefined || pitId == null || pitId == ''){
+            alert("该垮区未启用(无设备)！");
+            return;
+        }
+        location.href =  projectName+"/mobile/cellarContainer?plantId=" + plantId + "&pitId=" + pitId;
+    }
+</script>
+</html>

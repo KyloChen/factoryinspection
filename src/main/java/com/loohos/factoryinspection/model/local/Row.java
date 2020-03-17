@@ -4,6 +4,8 @@ import javax.persistence.*;
 import java.util.Set;
 
 @Entity
+//row为系统关键字 加[]以区分
+@Table(name = "[row]")
 public class Row {
     private String rowId;
     private int rowCode;

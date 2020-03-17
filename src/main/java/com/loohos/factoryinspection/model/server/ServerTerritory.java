@@ -30,7 +30,7 @@ public class ServerTerritory {
         this.territoryCode = territoryCode;
     }
 
-    @ManyToOne(cascade = {CascadeType.REFRESH})
+    @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinColumn(name = "plant_id")
     public ServerPlant getServerPlant() {
         return serverPlant;

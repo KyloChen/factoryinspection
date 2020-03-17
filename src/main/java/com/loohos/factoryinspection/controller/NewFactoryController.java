@@ -3,6 +3,8 @@ package com.loohos.factoryinspection.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
+import com.loohos.factoryinspection.enumeration.CameraBrand;
+import com.loohos.factoryinspection.enumeration.CameraLocation;
 import com.loohos.factoryinspection.enumeration.SensorWorkingType;
 import com.loohos.factoryinspection.enumeration.SerialPortType;
 import com.loohos.factoryinspection.model.config.ConfigAlarmLevel;
@@ -68,6 +70,11 @@ public class NewFactoryController  {
     private String loaduploaddeletethreshold;
     @Value("${com.loohos.loadUploadDeleteSensor}")
     private String loadUploadDeleteSensor;
+    @Value("${com.loohos.localUploadServerPlantCamera}")
+    private String loadUploadServerPlantCamera;
+    @Value("${com.loohos.localUploadServerPitCamera}")
+    private String localUploadServerPitCamera;
+
 
     @Resource(name = "plantServiceImpl") private PlantService plantService;
     @Resource(name = "territoryServiceImpl") private TerritoryService territoryService;
@@ -86,7 +93,7 @@ public class NewFactoryController  {
     @Resource(name = "serverCellarServiceImpl") private ServerCellarService serverCellarService;
     @Resource(name = "serverSensorNodeServiceImpl") private ServerSensorNodeService serverSensorNodeService;
     @Resource(name = "serverSensorServiceImpl") private ServerSensorService serverSensorService;
-
+    @Resource(name = "cameraServiceImpl") private CameraService cameraService;
 
     @RequestMapping(value = "/plant",produces={"text/html;charset=UTF-8;","application/json;"})
     public String getPlant(ModelMap modelMap){
@@ -114,8 +121,13 @@ public class NewFactoryController  {
                                    ModelMap modelMap) {
         String retString = "";
         Plant plant = plantService.getPlantByCode(inputData.getPlantCode());
+        Plant plant1 = plantService.getPlantByName(inputData.getPlantName());
         if(plant != null){
-            retString = "该车间已存在.";
+            retString = "该车间号已存在.";
+            logger.info(retString);
+            return retString;
+        }else if(plant1 != null) {
+            retString = "该车间名称已存在.";
             logger.info(retString);
             return retString;
         }else {
@@ -152,6 +164,19 @@ public class NewFactoryController  {
         modelMap.put("plant", plant);
         request.getSession().setAttribute("plantId", plantId);
 
+        List<Plant> plants = plantService.getScrollData().getResultList();
+        modelMap.put("plants", plants);
+
+        List<Camera> cameras = cameraService.getCamerasByPlantCode(plant.getPlantCode());
+        Map<Integer, List<Camera>> cameraExisted = new HashMap<>();
+
+        if(cameras == null){
+            cameraExisted.put(0, cameras);
+        }else {
+            cameraExisted.put(1, cameras);
+        }
+
+        modelMap.put("cameraExisted", cameraExisted);
         List<Territory> territories = territoryService.getTerritoriesByPlant(plant);
         List<Pit> pits = new ArrayList<>();
         if(territories == null){
@@ -163,13 +188,7 @@ public class NewFactoryController  {
                 List<Team> teams = teamService.getTeamsByTerritory(territory);
                 for (Team team : teams) {
                     List<Pit> existedPits = pitService.getPitsByTeam(team);
-                    if(existedPits.size() < 10){
-//                        for (int i = pits.size()+1; i <= 10; i++){
-//                            Pit pit = new Pit();
-//                            pit.setPitCode(i);
-//                            pit.setPitType("false");
-//                            pits.add(pit);
-//                        }
+                    if(existedPits.size() <= 10){
                         here:
                         for(int i = 1; i <= 10; i++){
                             for(Pit pit : existedPits){
@@ -202,10 +221,12 @@ public class NewFactoryController  {
 
 
     @RequestMapping(value = "/showCellar",produces={"text/html;charset=UTF-8;","application/json;"})
-    public String showCellar(@ModelAttribute Pit inputData,
+    public String showCellar(@ModelAttribute PlantPit inputData,
                              ModelMap modelMap){
         Pit pit = pitService.find(inputData.getPitId());
+        Plant plant = plantService.find(inputData.getPlantId());
         modelMap.put("pit", pit);
+        modelMap.put("plant", plant);
         List<Row> rows = new ArrayList<>();
         List<Row> existedRows = rowService.getRowByPit(pit);
         if(existedRows.size() < 4){
@@ -320,7 +341,6 @@ public class NewFactoryController  {
             });
             cellarSensorTree.put(row.getRowCode(), cellarSensors);
         }
-//        modelMap.put("cellarTree",cellarTree);
         modelMap.put("cellarSensorTree", cellarSensorTree);
         return "winery/localPage/cellarContainer";
     }
@@ -344,7 +364,7 @@ public class NewFactoryController  {
                 List<Team> teams = teamService.getTeamsByTerritory(territory);
                 for (Team team : teams) {
                     List<Pit> existedPits = pitService.getPitsByTeam(team);
-                    if(existedPits.size() < 10){
+                    if(existedPits.size() <= 10){
 //                        for (int i = pits.size()+1; i <= 10; i++){
 //                            Pit pit = new Pit();
 //                            pit.setPitCode(i);
@@ -492,85 +512,6 @@ public class NewFactoryController  {
                     }
 
                 }
-//        Map<Integer, Map> pitTree = new TreeMap<>();
-//        List<Row> rows = new ArrayList<>();
-//        for (Pit pit: pits){
-//            if(pit.getPitType().equals("false")){
-//                for (int i = 1; i<=4 ; i++){
-//                    Row row = new Row();
-//                    row.setRowCode(i);
-//                    row.setRowType("false");
-//                    rows.add(row);
-//                }
-//            }else if(pit.getPitType().equals("true")) {
-//                rows = rowService.getRowByPit(pit);
-//                for(int i = rows.size()+1; i<=4; i++){
-//                    Row row = new Row();
-//                    row.setRowType("false");
-//                    row.setRowCode(i);
-//                    rows.add(row);
-//                }
-//            }
-//            Map<Integer, List<Cellar>> cellarTree = new TreeMap<>();
-//            for(Row row: rows){
-//                List<Cellar> cellars = new ArrayList<>();
-//                if(row.getRowType().equals("false")){
-//                    for(int i = 1; i<=12; i++){
-//                        Cellar cellar = new Cellar();
-//                        cellar.setCellarCode(i);
-//                        cellar.setCellarType("false");
-//                        Sensor sensor = new Sensor();
-//                        sensor.setAlarmLevel(0);
-//                        cellar.setSensor(sensor);
-//                        cellars.add(cellar);
-//                        logger.info("填充项1");
-//                    }
-//                }else{
-//                    List<Cellar> existedCellars = cellarService.getCellarByRowDesc(row);
-//                    here:
-//                    for (int i = 1; i <= 12; i++) {
-//                        for (Cellar cellar: existedCellars) {
-//                            if(cellar.getCellarCode() == i){
-//                                logger.info("正常项1");
-//                                cellars.add(cellar);
-//                                continue here;
-//                            }
-//                        }
-//                        logger.info("无匹配，填充当前CellarCode");
-//                        Cellar cellar = new Cellar();
-//                        cellar.setCellarCode(i);
-//                        cellar.setCellarType("false");
-//                        Sensor sensor = new Sensor();
-//                        sensor.setAlarmLevel(0);
-//                        cellar.setSensor(sensor);
-//                        cellars.add(cellar);
-//                        logger.info("填充项");
-//                    }
-//                }
-//            if(row.getRowType().equals("false")){
-//                for(int i = 1; i<=12; i++){
-//                    Cellar cellar = new Cellar();
-//                    cellar.setCellarCode(i);
-//                    cellar.setCellarType("false");
-//                    Sensor sensor = new Sensor();
-//                    sensor.setAlarmLevel(0);
-//                    cellar.setSensor(sensor);
-//                    cellars.add(cellar);
-//                    logger.info("填充项");
-//                }
-//            } else if(cellars.size() < 12 ){
-//                cellars = cellarService.getCellarByRowDesc(row);
-//                for(int i = cellars.size()+1; i<=12; i++){
-//                    Cellar cellar = new Cellar();
-//                    cellar.setCellarCode(i);
-//                    cellar.setCellarType("false");
-//                    Sensor sensor = new Sensor();
-//                    sensor.setAlarmLevel(0);
-//                    cellar.setSensor(sensor);
-//                    cellars.add(cellar);
-//                    logger.info("正常项");
-//                }
-//            }
                 Collections.sort(cellarSensors, new Comparator<CellarSensor>() {
                     @Override
                     public int compare(CellarSensor o1, CellarSensor o2) {
@@ -624,12 +565,12 @@ public class NewFactoryController  {
         int minRangeLevel = configAlarmLevelService.getIsOrNotUnderRange(minValue);
         int maxRangeLevel = configAlarmLevelService.getIsOrNotUnderRange(maxValue);
         if(minRangeLevel !=0 && maxRangeLevel != 0){
-            return "最大与最小阈值与等级 " + minRangeLevel + " 范围重合，请重新设置.";
+            return "最大与最小报警值与等级 " + minRangeLevel + " 范围重合，请重新设置.";
         }
         else if(minRangeLevel != 0){
-            return "最小阈值与等级 " + minRangeLevel + " 范围重合，请重新设置";
+            return "最小报警值与等级 " + minRangeLevel + " 范围重合，请重新设置";
         }else if(maxRangeLevel != 0){
-            return "最大阈值与等级 " + maxRangeLevel + " 范围重合，请重新设置";
+            return "最大报警值与等级 " + maxRangeLevel + " 范围重合，请重新设置";
         }
         //校验重复
         List<ConfigAlarmLevel> alarmLevels = configAlarmLevelService.getScrollData().getResultList();
@@ -672,7 +613,7 @@ public class NewFactoryController  {
             return "设置绿色安全级别成功";
         }
         //保存失败
-        return "设置阈值失败.";
+        return "设置报警值失败.";
     }
 
     /**
@@ -842,6 +783,108 @@ public class NewFactoryController  {
         return retString;
     }
 
+    @RequestMapping(value = "/addPlantCamera",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String addPlantCamera(@ModelAttribute Camera inputData,
+                                   ModelMap modelMap){
+        System.out.println(inputData);
+        String retString = "";
+        Camera urlExistedCamera = cameraService.getUrlExistedCamera(inputData.getCameraUrl());
+        Camera serialExistCamera = cameraService.getSerialExistedCamera(inputData.getCameraSerialNum());
+        if(urlExistedCamera != null){
+            retString = "当前摄像头url已存在，请确认后输入.";
+            return retString;
+        }else if(serialExistCamera != null){
+            retString = "当前摄像头序列号已存在，请确认后输入.";
+            return retString;
+        }else {
+
+            inputData.setCameraId(HttpClientUtils.getUUID());
+            inputData.setCreatedTime(new Date());
+
+            try{
+                inputData.setCameraBrand(null);
+                JSONObject plantCameraJson = (JSONObject) JSONObject.toJSON(inputData);
+                logger.info("jsonarray:   "+plantCameraJson);
+                String centerUrl = serverUrl+loadUploadServerPlantCamera;
+                String retInfo = sendToServer(plantCameraJson, centerUrl);
+                logger.info(">>>>>>>retinfo is : " + retInfo);
+
+                inputData.setCameraBrand(CameraBrand.HikVision);
+                inputData.setCameraLocation(CameraLocation.PLANT_CAMERA);
+
+                cameraService.save(inputData);
+                retString = "录入车间摄像头成功.";
+
+                return retString;
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                retString = "录入车间摄像头失败,请重试.";
+                return retString;
+            }
+
+        }
+    }
+
+    @RequestMapping(value = "/addPitCamera",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String addPitCamera(@ModelAttribute Camera inputData,
+                                   ModelMap modelMap){
+
+        String retString = "";
+//        Camera urlExistedCamera = cameraService.getUrlExistedCamera(inputData.getCameraUrl());
+//        Camera serialExistCamera = cameraService.getSerialExistedCamera(inputData.getCameraSerialNum());
+//        if(urlExistedCamera != null){
+//            retString = "当前摄像头url已存在，请确认后输入.";
+//            return retString;
+//        }else if(serialExistCamera != null){
+//            retString = "当前摄像头序列号已存在，请确认后输入.";
+//            return retString;
+//        }
+        Camera camera = cameraService.getCamerasByPlantAndPit(inputData.getPlantCode(), inputData.getPitCode());
+        if(camera.getCameraId() != null){
+            retString = "该垮区已存在摄像头。";
+            return retString;
+        }
+        else {
+            inputData.setCameraId(HttpClientUtils.getUUID());
+            inputData.setCreatedTime(new Date());
+            try {
+
+                inputData.setCameraBrand(null);
+                JSONObject pitCameraJson = (JSONObject) JSONObject.toJSON(inputData);
+                logger.info("jsonarray:   " + pitCameraJson);
+                String centerUrl = serverUrl + localUploadServerPitCamera;
+                String retInfo = sendToServer(pitCameraJson, centerUrl);
+                logger.info(">>>>>>>retinfo is : " + retInfo);
+            }catch (Exception e){
+                e.printStackTrace();
+                retString = "录入垮区摄像头失败.";
+                return retString;
+            }
+
+            inputData.setCameraBrand(CameraBrand.HikVision);
+            inputData.setCameraLocation(CameraLocation.PIT_CAMERA);
+            cameraService.save(inputData);
+            retString = "录入垮区摄像头成功.";
+            return retString;
+        }
+    }
+
+    @RequestMapping(value = "/showPitCamera",produces={"text/html;charset=UTF-8;","application/json;"})
+    @ResponseBody
+    public String showPitCamera(@ModelAttribute PlantPit inputData,
+                               ModelMap modelMap){
+        String retString = "";
+        Plant plant = plantService.find(inputData.getPlantId());
+        Pit pit = pitService.find(inputData.getPitId());
+        Camera pitCamera = cameraService.getCamerasByPlantAndPit(plant.getPlantCode(), pit.getPitCode());
+        Gson gson = new Gson();
+        retString = gson.toJson(pitCamera);
+        return retString;
+    }
+
     /**
      *根据日期查询
      * */
@@ -859,8 +902,8 @@ public class NewFactoryController  {
         Date endDate = null;
         try {
             //加24小时找值
-            startDate = CommonUtils.addDays(format1.parse(inputData.getStartDate()), 1);
-            endDate = CommonUtils.addDays(format1.parse(inputData.getEndDate()), 1);
+            startDate = CommonUtils.addDays(format1.parse(inputData.getStartDate()), 0);
+            endDate = CommonUtils.addDays(format1.parse(inputData.getEndDate()), 0);
             logger.info("Start query.....");
             List<Double> queryTopTemps = sensorNodeService.getValuesBySensorAndRange(sensor, TOP_TEMP_SENSOR, startDate, endDate);
             List<Double> queryMidTemps = sensorNodeService.getValuesBySensorAndRange(sensor, MID_TEMP_SENSOR, startDate, endDate);

@@ -49,4 +49,30 @@ public class ServerPitServiceImpl extends DaoSupport<ServerPit> implements Serve
             return null;
         }
     }
+
+    @Override
+    public String getLocalIdByServerPitId(String serverPitId) {
+        Query query = em.createQuery("select o.localPitId from ServerPit o where o.pitId = ?1");
+        query.setParameter(1, serverPitId);
+        query.setMaxResults(1);
+        try {
+            return (String) query.getSingleResult();
+        }catch (Exception e){
+            logger.info("error getting local pit id");
+            return null;
+        }
+    }
+
+    @Override
+    public int getPitCodeById(String serverPitId) {
+        Query query = em.createQuery("select o.pitCode from ServerPit o where o.pitId = ?1");
+        query.setParameter(1, serverPitId);
+        query.setMaxResults(1);
+        try {
+            return (int) query.getSingleResult();
+        }catch (Exception e){
+            logger.info("error getting local pit id");
+            return 0;
+        }
+    }
 }

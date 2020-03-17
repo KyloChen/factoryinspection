@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>详细图表</title>
+    <title>设备温度趋势图</title>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="智能厂房管理系统">
@@ -13,16 +13,33 @@
     <link rel="stylesheet" th:href="@{/static/css/font-awesome/css/font-awesome.min.css}">
     <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/static/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css}">
-    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/localcss/curveDetail.css}">
+    <link rel="stylesheet" th:href="@{/static/css/factoryinspection/mobilecss/mobileCurve.css}">
 
     <script type="text/javascript" th:src="@{/static/scripts/plugin/jquery-1.10.2.min.js}"></script>
     <script type="text/javascript" th:src="@{/static/scripts/echarts.min.js}"></script>
     <script type="text/javascript" th:src="@{/static/scripts/bootstrap.min.js}"></script>
     <script type="text/javascript" th:src="@{/static/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js}"></script>
     <script type="text/javascript" th:src="@{/static/bootstrap-datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js}"></script>
-    <script type="text/javascript" th:src="@{/static/scripts/factoryinspection/localScripts/curveDetail.js}"></script>
+    <script type="text/javascript" th:src="@{/static/scripts/factoryinspection/mobileScripts/mobileCurve.js}"></script>
+
+    <style>
+        #fullScreenLayer{
+            display: none;
+        }
+        #fullScreenLayerBtn{
+            display: none;
+        }
+        #mobile-plant-header{
+            width: 100%;
+            text-align: center;
+            font-size: 20px;
+            padding: 8px 0;
+            background: aqua;
+            font-weight: 600;
+        }
+    </style>
 </head>
-<body style="background-color: black;">
+<body>
 <!--全屏部分-->
 <button id="fullScreenLayerBtn" class="btn btn-success" onclick="closeFullScreen()">退出全屏</button>
 <div id="fullScreenLayer">
@@ -31,41 +48,66 @@
 </div>
 
 <!--主体部分-->
+<div id="mobile-plant-header">
+    <span th:text="${serverPlant.plantName}+'第'+${serverPit.pitCode}+'垮趋势图'"></span>
+    <i class="fa fa-arrow-left fa-1g" style="color: black;position: absolute;left: 4%;top: 1.2%;font-size: 20px;" onclick="backToMobileCellarContainer()"></i>
+</div>
 <div id="wholeDiv">
+    <div id="mainDiv">
+        <div id="main" style="width: 100%;height: 100%;min-height: 300px"></div>
+    </div>
     <div id="operateDiv">
         <p class="introP">按照日期范围查询</p>
         <div id="queryByDateRange">
-        <div id="dateTimeSelector">
-            <div class="input-group date form_date mr10">
-                <input class="form-control" placeholder="开始日期" readonly="readonly" type="text" id="startDate">
+            <div id="dateTimeSelector">
+                <div class="input-group date form_date mr10">
+                    <input class="form-control" placeholder="开始日期" readonly="readonly" type="text" id="startDate">
+                </div>
+                <div class="input-group date form_date">
+                    <input class="form-control" placeholder="结束日期" readonly="readonly" type="text" id="endDate">
+                </div>
             </div>
-            <div class="input-group date form_date">
-                <input class="form-control" placeholder="结束日期" readonly="readonly" type="text" id="endDate">
-            </div>
-        </div>
-        <div id="dateTimeBtn">
-            <button class=" btn btn-group-xs btn-primary" id="dateRangeQueryBtn" onclick="queryByDateRange()">查询</button>
-            <button class=" btn btn-group-xs btn-primary" id="dateRangeResetBtn" onclick="resetTimeRange()">重置</button>
-        </div></div>
+            <div id="dateTimeBtn">
+                <button class=" btn btn-group-xs btn-primary" id="dateRangeQueryBtn" onclick="queryByDateRange()">查询</button>
+                <button class=" btn btn-group-xs btn-primary" id="dateRangeResetBtn" onclick="resetTimeRange()">重置</button>
+            </div></div>
         <p class="introP">按照小时数查询</p>
         <div id="queryByHours">
             <div id="toggleCurveBtn">
-                <p>点击查询过去 <input id="hours" type="text"> 小时曲线</p>
+                <p>点击查询过去 <input style="max-width: 100px" id="hours" type="text"> 小时曲线</p>
                 <button class="btn btn-primary" onclick="lastHours()">查询</button>
             </div>
         </div>
         <p class="introP">操作列表</p>
         <div id="refreshBackAndFullScreenBtn">
             <button class="btn btn-success" onclick="dailyLine()">刷新图表</button>
-            <button class="btn btn-primary" onclick="showFullScreen()">全屏显示</button>
+            <!--<button class="btn btn-primary" onclick="screenOrientationEvent()">全屏显示</button>-->
             <button class="btn btn-info" onclick="backToWinery()">返回厂区</button>
         </div>
     </div>
-<div id="mainDiv">
-    <div id="main" style="width: 100%;height: 100%;"></div>
+
 </div>
-</div>
+<input id="serverPlantId" style="display: none" th:value="${serverPlant.plantId}">
+<input id="serverPitId" style="display: none" th:value="${serverPit.pitId}">
+<input id="sensorId" style="display: none" th:value="${sensorId}">
 <script type="text/javascript" th:inline="javascript">
+
+
+    window.addEventListener("orientationchange", function() {
+        if(window.orientation == '90'){
+            document.getElementById("mobile-plant-header").style.display = "none";
+            document.getElementById("operateDiv").style.display = "inline-flex";
+        }else if(window.orientation == '0'){
+            document.getElementById("mobile-plant-header").style.display = "block";
+            document.getElementById("operateDiv").style.display = "block";
+        }
+    }, false);
+
+    var plantId = document.getElementById("serverPlantId").value;
+    var pitId = document.getElementById("serverPitId").value;
+    function backToMobileCellarContainer() {
+        location.href =  projectName+"/mobile/mobileCurveDetail?plantId=" + plantId + "&pitId=" + pitId;
+    }
     var myChart = echarts.init(document.getElementById('main'),'dark');
     var fullScreenContainer = document.getElementById('fullScreenContainer');
     fullScreenContainer.style.width = window.innerWidth + 'px';
@@ -107,16 +149,15 @@
         toolbox: {
             show: true,
             feature: {
-                dataZoom:
-                    {
-                    type: 'slider',                         //slider表示有滑动块的，inside表示内置的
+                dataZoom: {
                     show: true,
                     yAxisIndex: 'none'
-                    },
+                },
                 dataView: {
                     show: true,
                     readOnly: false
                 }
+
             }
         },
         xAxis:  {
@@ -176,6 +217,6 @@
     $("#main").resize(myChart.resize);
     myChart.setOption(dailyOption);
 </script>
-<input style="display: none;"  type="text" th:value="${sensorId}" id="sensorId">
+
 </body>
 </html>
